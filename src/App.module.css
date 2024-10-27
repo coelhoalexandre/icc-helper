@@ -1,0 +1,52 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 60rem;
+}
+
+.main .options {
+  display: flex;
+  gap: 2rem;
+}
+
+.main .options button.selectedButton {
+  background-color: var(--button-hover-background);
+  color: var(--button-hover-color);
+}
+
+.main .section {
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  padding: 2rem;
+}
+
+.main .section form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.main .section form input {
+  border: none;
+  border-bottom: 1px solid var(--primary-color);
+}
+
+.main .section form input:focus-visible {
+  outline: none;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.main .section form select {
+  padding: 0.5rem;
+}
+
+.main .section form select option {
+  background-color: var(--background-color);
+  color: var(---primary-color);
+}
+
+.main .section form button {
+  margin-top: 1rem;
+}

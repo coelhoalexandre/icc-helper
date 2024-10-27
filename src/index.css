@@ -1,0 +1,111 @@
+:root {
+  /* color-scheme: light dark; */
+  --font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  --background-color: #f9f9f9;
+  --primary-color: #121212;
+
+  --button-background: var(--background-color);
+  --button-color: var(--primary-color);
+  --button-hover-background: var(--primary-color);
+  --button-hover-color: var(--background-color);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background-color: var(--background-color);
+  font-family: var(--font-family);
+  color: var(--primary-color);
+  line-height: 1.5;
+  font-size: 62.5%;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  min-height: 100vh;
+  font-size: 1.6rem;
+}
+
+h1 {
+  font-size: 3.2rem;
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 2.4rem;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid var(--button-hover-background);
+  padding: 0.6em 1.2em;
+
+  background-color: var(--button-background);
+  color: var(--button-color);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: bold;
+
+  cursor: pointer;
+  transition: 0.5s;
+}
+
+button:hover {
+  background-color: var(--button-hover-background);
+  color: var(--button-hover-color);
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+input {
+  background-color: inherit;
+  color: inherit;
+  font-size: inherit;
+}
+
+select {
+  background-color: inherit;
+  color: inherit;
+  font-size: inherit;
+}
+
+@media screen and (min-width: 1024px) {
+  body {
+    font-size: 1.8rem;
+  }
+  h2 {
+    font-size: 2.8rem;
+    line-height: 1.1;
+  }
+}
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+} */
