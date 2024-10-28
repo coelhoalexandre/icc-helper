@@ -38,6 +38,7 @@ export default function BinaryArithmeticSection() {
           id="architecturalSizeInput"
           name="architecturalSizeInput"
           min={1}
+          required
           value={architecturalSizeInput}
           onChange={(e) => setArchitecturalSizeInput(e.target.value)}
         />
@@ -45,6 +46,7 @@ export default function BinaryArithmeticSection() {
         <select
           name="operationSelector"
           id="operationSelector"
+          required
           value={operationSelector}
           onChange={(e) => setOperationSelector(e.target.value)}
         >
@@ -62,6 +64,7 @@ export default function BinaryArithmeticSection() {
           type="text"
           name="primeiroNum"
           id="primeiroNum"
+          required
           value={num1Input}
           onChange={(e) => setNum1Input(e.target.value)}
         />
@@ -72,6 +75,7 @@ export default function BinaryArithmeticSection() {
           type="text"
           name="segundoNum"
           id="segundoNum"
+          required
           value={num2Input}
           onChange={(e) => setNum2Input(e.target.value)}
         />
