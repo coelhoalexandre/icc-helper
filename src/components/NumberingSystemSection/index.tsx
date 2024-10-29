@@ -1,7 +1,8 @@
-import { useLayoutEffect, useState } from "react";
-import Controller from "../../controller/Controller";
+import { useContext, useLayoutEffect, useState } from "react";
+import { ControllerContext } from "../../context/ControllerContext";
+
 export default function NumberingSystemSection() {
-  const controller = new Controller();
+  const { controller } = useContext(ControllerContext);
   const [baseInput, setBaseInput] = useState("2");
   const [numInput, setNumInput] = useState("");
   const getNumInputPattern = () => controller.getNumInputPattern(baseInput);
@@ -31,7 +32,7 @@ export default function NumberingSystemSection() {
           value={baseInput}
           onChange={(event) => setBaseInput(event.target.value)}
         />
-        <label htmlFor="numInput">Digite o numero na respectiva base: </label>
+        <label htmlFor="numInput">Digite o número na respectiva base: </label>
         <input
           type="text"
           id="numInput"

@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import styles from "./App.module.css";
 import NumberingSystemSection from "./components/NumberingSystemSection";
-import BinaryArithmeticSection from "./components/BinaryArithmeticSection/indext";
+import BinaryArithmeticSection from "./components/BinaryArithmeticSection";
 import { SectionValues } from "./enums/SectionValues";
 import ErrorSection from "./components/ErrorSection";
+import { ControllerContext } from "./context/ControllerContext";
 
 function App() {
+  const { viewElement } = useContext(ControllerContext);
   const options = [
     {
       id: SectionValues.NUMBERING_SYSTEM,
@@ -50,6 +52,11 @@ function App() {
       </div>
 
       <section className={styles.section}>{renderSection()}</section>
+      {viewElement ? (
+        <section className={styles.section}>{viewElement}</section>
+      ) : (
+        ""
+      )}
     </main>
   );
 }

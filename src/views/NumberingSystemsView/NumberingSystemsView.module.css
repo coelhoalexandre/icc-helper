@@ -1,0 +1,63 @@
+.description {
+  display: flex;
+  justify-content: space-around;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.method {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid var(--primary-color);
+  padding-top: 2rem;
+  text-align: center;
+}
+
+.method > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.method h3 {
+  width: fit-content;
+  border-bottom: 1px solid var(--primary-color);
+  font-size: 1.4rem;
+}
+
+.method .inverseTFN {
+  text-align: end;
+}
+
+.method .aggregationSpan {
+  margin-top: 1rem;
+  margin-right: 5px;
+  border-top: 1px solid var(--primary-color);
+}
+
+@media screen and (min-width: 375px) {
+  .method h3 {
+    font-size: 1.6rem;
+  }
+}
+
+@media screen and (min-width: 480px) {
+  .method h3 {
+    font-size: 1.8rem;
+  }
+}
+
+@media screen and (min-width: 612px) {
+  .method h3 {
+    font-size: 2.2rem;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .method h3 {
+    font-size: 2.4rem;
+  }
+}
