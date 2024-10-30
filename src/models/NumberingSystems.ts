@@ -1,8 +1,9 @@
 import { NumberingSystemsMethods } from "../enums/NumberingSystemsMethods";
 import Aggregation from "../types/Aggregation";
 import Disaggregation from "../types/Disaggregation";
-import InverseTFN from "../types/InverseTFN";
+import InverseTFN, { Divisions, Multiplications } from "../types/InverseTFN";
 import { KnownBases } from "../types/KnownBases";
+import NumParts from "../types/NumParts";
 import TFN, { Parcel } from "../types/TFN";
 
 export default class NumberingSystems {
@@ -35,16 +36,26 @@ export default class NumberingSystems {
     "Z",
   ];
 
-  public getNumInputPattern(baseInput: string): string {
-    const base = Number(baseInput);
+  public getNumInputPattern(baseInput: number): string {
+    const regExComma = "?:,";
+    if (baseInput <= 10) return `(${regExComma}|[0-${baseInput - 1}])*`;
+    else
+      return `(${regExComma}|[0-9${this.symbols[0]}-${
+        this.symbols[baseInput - 11]
+      }])*`;
+  }
 
-    if (base <= 10) return `[0-${base - 1}]{0,999}`;
-    else return `[0-9${this.symbols[0]}-${this.symbols[base - 11]}]{0,999}`;
+  public isNeedMaxNumDecPlaces(base: number): boolean {
+    const basesThatNotNeed = [2, 4, 8, 16];
+    if (basesThatNotNeed.includes(base)) return false;
+
+    return true;
   }
 
   public getNumberConvertedToKnownBases(
-    baseInput: string,
-    numInput: string
+    baseInput: number,
+    numInput: string,
+    maxDecimalPlaces: number | undefined
   ): KnownBases {
     let decimalNumber: TFN;
 
@@ -54,88 +65,148 @@ export default class NumberingSystems {
 
     let hexaNumber: Aggregation;
 
+    const { integerPart, fractionalPart } =
+      this.getIntegerFractionalParts(numInput);
+
     switch (baseInput) {
-      case "2":
-        decimalNumber = this.TFN("2", numInput);
-        octalNumber = this.aggregation(8, numInput);
-        hexaNumber = this.aggregation(16, numInput);
+      case 2:
+        decimalNumber = this.TFN(2, { integerPart, fractionalPart });
+        octalNumber = this.aggregation(8, { integerPart, fractionalPart });
+        hexaNumber = this.aggregation(16, { integerPart, fractionalPart });
         return [decimalNumber, octalNumber, hexaNumber];
-      case "4":
-        binaryNumber = this.disaggregation(baseInput, numInput);
-        decimalNumber = this.TFN("2", binaryNumber.convertedNumber);
-        octalNumber = this.aggregation(8, binaryNumber.convertedNumber);
-        hexaNumber = this.aggregation(16, binaryNumber.convertedNumber);
+      case 4:
+        binaryNumber = this.disaggregation(baseInput, {
+          integerPart,
+          fractionalPart,
+        });
+        decimalNumber = this.TFN(2, binaryNumber.numParts);
+        octalNumber = this.aggregation(8, binaryNumber.numParts);
+        hexaNumber = this.aggregation(16, binaryNumber.numParts);
         return [binaryNumber, decimalNumber, octalNumber, hexaNumber];
-      case "8":
-        binaryNumber = this.disaggregation(baseInput, numInput);
-        decimalNumber = this.TFN("2", binaryNumber.convertedNumber);
-        hexaNumber = this.aggregation(16, binaryNumber.convertedNumber);
+      case 8:
+        binaryNumber = this.disaggregation(baseInput, {
+          integerPart,
+          fractionalPart,
+        });
+        decimalNumber = this.TFN(2, binaryNumber.numParts);
+        hexaNumber = this.aggregation(16, binaryNumber.numParts);
         return [binaryNumber, decimalNumber, hexaNumber];
-      case "10":
-        binaryNumber = this.inverseTFN(2, numInput);
-        octalNumber = this.aggregation(8, binaryNumber.convertedNumber);
-        hexaNumber = this.aggregation(16, binaryNumber.convertedNumber);
+      case 10:
+        binaryNumber = this.inverseTFN(
+          2,
+          { integerPart, fractionalPart },
+          maxDecimalPlaces
+        );
+        octalNumber = this.aggregation(8, binaryNumber.numParts);
+        hexaNumber = this.aggregation(16, binaryNumber.numParts);
         return [binaryNumber, octalNumber, hexaNumber];
-      case "16":
-        binaryNumber = this.disaggregation(baseInput, numInput);
-        decimalNumber = this.TFN("2", binaryNumber.convertedNumber);
-        octalNumber = this.aggregation(8, binaryNumber.convertedNumber);
+      case 16:
+        binaryNumber = this.disaggregation(baseInput, {
+          integerPart,
+          fractionalPart,
+        });
+        decimalNumber = this.TFN(2, binaryNumber.numParts);
+        octalNumber = this.aggregation(8, binaryNumber.numParts);
         return [binaryNumber, decimalNumber, octalNumber];
       default:
-        decimalNumber = this.TFN(baseInput, numInput);
-        binaryNumber = this.inverseTFN(2, decimalNumber.convertedNumber);
-        octalNumber = this.aggregation(8, binaryNumber.convertedNumber);
-        hexaNumber = this.aggregation(16, binaryNumber.convertedNumber);
+        decimalNumber = this.TFN(
+          baseInput,
+          { integerPart, fractionalPart },
+          maxDecimalPlaces
+        );
+        binaryNumber = this.inverseTFN(
+          2,
+          decimalNumber.numParts,
+          maxDecimalPlaces
+        );
+        octalNumber = this.aggregation(8, binaryNumber.numParts);
+        hexaNumber = this.aggregation(16, binaryNumber.numParts);
         return [decimalNumber, binaryNumber, octalNumber, hexaNumber];
     }
   }
 
-  private TFN(base: string, num: string): TFN {
+  private getIntegerFractionalParts(num: string): NumParts {
+    const indexOfComma = num.indexOf(",");
+
+    if (indexOfComma === -1) return { integerPart: num, fractionalPart: null };
+
+    const integerPart = num.slice(0, indexOfComma);
+    const fractionalPart = num.slice(indexOfComma + 1);
+
+    return { integerPart, fractionalPart };
+  }
+
+  private TFN(
+    base: number,
+    { integerPart, fractionalPart }: NumParts,
+    maxDecimalPlaces?: number
+  ): TFN {
     const products: number[] = [];
     const parcels: Parcel[] = [];
 
-    for (let i = 0; i < num.length; i++) {
-      const char = num.charAt(i);
-      const digit = isNaN(Number(char))
-        ? this.getCharacterEquivalentInNumber(char)
-        : Number(char);
-      const exponent = num.length - 1 - i;
-      const product = digit * Math.pow(Number(base), exponent);
-      const parcel = {
-        digit,
-        base,
-        exponent,
-      };
+    const resIntegerPart = this.getTFNResult(integerPart, base);
 
-      parcels.push(parcel);
-      products.push(product);
+    products.push(...resIntegerPart.products);
+    parcels.push(...resIntegerPart.parcels);
+
+    const numParts: NumParts = {
+      integerPart: resIntegerPart.products
+        .reduce((acc, product) => (acc += product))
+        .toString(),
+      fractionalPart: null,
+    };
+
+    if (fractionalPart) {
+      const resFractionalPart = this.getTFNResult(
+        fractionalPart,
+        base,
+        false,
+        maxDecimalPlaces
+      );
+
+      products.push(...resFractionalPart.products);
+      parcels.push(...resFractionalPart.parcels);
+
+      numParts.fractionalPart = resFractionalPart.products
+        .reduce((acc, product) => (acc += product))
+        .toString();
     }
 
-    const convertedNumber = products
-      .reduce((acc, product) => (acc += product))
-      .toString();
+    const convertedNumber = (
+      Number(numParts.integerPart) + Number(numParts.fractionalPart)
+    )
+      .toString()
+      .replace(".", ",");
+
+    if (numParts.fractionalPart)
+      numParts.fractionalPart = (
+        Number(numParts.fractionalPart) *
+        10 ** numParts.fractionalPart.length
+      ).toString();
 
     return {
       id: NumberingSystemsMethods.TFN,
       targetBase: 10,
+      numParts,
       convertedNumber,
       products,
       parcels,
     };
   }
 
-  private inverseTFN(base: number, num: string): InverseTFN {
-    const divisions: {
-      dividend: number;
-      divider: number;
-      quotient: number;
-      rest: number;
-    }[] = [];
+  private inverseTFN(
+    base: number,
+    { integerPart, fractionalPart }: NumParts,
+    maxDecimalPlaces?: number
+  ): InverseTFN {
+    const divisions: Divisions[] = [];
 
-    let quotient = Number(num);
+    const multiplications: Multiplications[] = [];
+
+    let quotient = Number(integerPart);
+    const divider = base;
     do {
       const dividend = quotient;
-      const divider = base;
       quotient = Math.trunc(dividend / divider);
       const rest = dividend % divider;
 
@@ -147,41 +218,100 @@ export default class NumberingSystems {
       });
     } while (quotient > 0);
 
-    const convertedNumber = divisions
-      .map((division) => division.rest.toString())
-      .reverse()
-      .join("");
+    const numParts: NumParts = {
+      integerPart: divisions
+        .map((division) => division.rest.toString())
+        .reverse()
+        .join(""),
+      fractionalPart: null,
+    };
+
+    if (fractionalPart) {
+      if (!maxDecimalPlaces)
+        throw new Error(
+          "Maximum number of decimal places has not been defined"
+        );
+
+      let decimalPlaces = 0;
+      let rest = Number(fractionalPart) / 10 ** fractionalPart.length;
+
+      const factorRight = base;
+      console.log(rest);
+      do {
+        const factorLeft = rest;
+        rest = factorLeft * factorRight;
+        const integer = Math.trunc(rest);
+        const product = this.getIntegerFractionalParts(
+          rest.toString().replace(".", ",")
+        );
+
+        rest = Number((rest - integer).toFixed(maxDecimalPlaces));
+
+        multiplications.push({
+          factorLeft,
+          factorRight,
+          product,
+          integer,
+          rest,
+        });
+        decimalPlaces++;
+      } while (rest !== 0 && decimalPlaces < maxDecimalPlaces);
+
+      numParts.fractionalPart = multiplications
+        .map((multiplication) => multiplication.integer.toString())
+        .join("");
+    }
+
+    const convertedNumber = numParts.fractionalPart
+      ? numParts.integerPart + "," + numParts.fractionalPart
+      : numParts.integerPart;
+
     return {
       id: NumberingSystemsMethods.INVERSE_TFN,
       targetBase: base,
       convertedNumber,
-      num,
+      numParts,
       divisions,
+      multiplications,
     };
   }
 
-  private aggregation(base: number, num: string): Aggregation {
+  private aggregation(
+    base: number,
+    { integerPart, fractionalPart }: NumParts
+  ): Aggregation {
+    const isThereFractionalPart = fractionalPart ? true : false;
     const aggregations: string[] = [];
     const convertedAggregations: string[] = [];
 
     const aggregationOf = Math.log2(base);
-    let isMultiple = num.length % aggregationOf ? false : true;
 
-    while (!isMultiple) {
-      num = num.padStart(num.length + 1, "0");
-      isMultiple = num.length % aggregationOf ? false : true;
+    const resIntegerPart = this.getAggregationResult(
+      integerPart,
+      aggregationOf
+    );
+
+    aggregations.push(...resIntegerPart.aggregations);
+    convertedAggregations.push(...resIntegerPart.convertedAggregations);
+
+    if (isThereFractionalPart) {
+      aggregations[aggregations.length - 1] += ",";
+      convertedAggregations[convertedAggregations.length - 1] += ",";
     }
 
-    const magnitudeCorrectedNumber = num;
+    let magnitudeCorrectedNumber = resIntegerPart.magnitudeCorrectedNumber;
 
-    for (let i = 0; i < magnitudeCorrectedNumber.length; i += aggregationOf) {
-      const aggregation = magnitudeCorrectedNumber.slice(i, aggregationOf + i);
-      const binaryAggregation = Number(aggregation);
-      const convertedAggregation =
-        this.getConvertedAggregation(binaryAggregation);
+    if (fractionalPart) {
+      const resFractionalPart = this.getAggregationResult(
+        fractionalPart,
+        aggregationOf,
+        false
+      );
 
-      aggregations.push(aggregation);
-      convertedAggregations.push(convertedAggregation);
+      aggregations.push(...resFractionalPart.aggregations);
+      convertedAggregations.push(...resFractionalPart.convertedAggregations);
+
+      magnitudeCorrectedNumber += `,${resFractionalPart.magnitudeCorrectedNumber}`;
     }
 
     const convertedNumber = convertedAggregations.join("");
@@ -195,15 +325,140 @@ export default class NumberingSystems {
     };
   }
 
-  private disaggregation(base: string | number, num: string): Disaggregation {
-    base = Number(base);
-    const disaggregationOf = Math.log2(base);
-
+  private disaggregation(
+    base: number,
+    { integerPart, fractionalPart }: NumParts
+  ): Disaggregation {
+    const isThereFractionalPart = fractionalPart ? true : false;
     const digits: string[] = [];
     const disaggregations: string[] = [];
 
-    for (let i = 0; i < num.length; i++) {
-      const digit = num.charAt(i);
+    const disaggregationOf = Math.log2(base);
+
+    const resIntegerPart = this.getDisaggregationResult(
+      integerPart,
+      disaggregationOf
+    );
+
+    disaggregations.push(...resIntegerPart.disaggregations);
+    digits.push(...resIntegerPart.digits);
+
+    let convertedNumber = resIntegerPart.disaggregations.join("");
+
+    if (isThereFractionalPart) {
+      disaggregations[disaggregations.length - 1] += ",";
+      digits[digits.length - 1] += ",";
+      convertedNumber += ",";
+    }
+
+    const numParts: NumParts = {
+      integerPart: resIntegerPart.disaggregations.join(""),
+      fractionalPart: null,
+    };
+
+    if (fractionalPart) {
+      const resFractionalPart = this.getDisaggregationResult(
+        fractionalPart,
+        disaggregationOf
+      );
+      disaggregations.push(...resFractionalPart.disaggregations);
+      digits.push(...resFractionalPart.digits);
+      numParts.fractionalPart = resFractionalPart.disaggregations.join("");
+
+      convertedNumber += resFractionalPart.disaggregations.join("");
+    }
+
+    return {
+      id: NumberingSystemsMethods.DISAGGREGATION,
+      targetBase: 2,
+      numParts,
+      convertedNumber,
+      digits,
+      disaggregations,
+    };
+  }
+
+  private getTFNResult(
+    part: string,
+    base: number,
+    isInteger: boolean = true,
+    maxDecimalPlaces?: number
+  ) {
+    const parcels: Parcel[] = [];
+    const products: number[] = [];
+
+    for (let i = 0; i < part.length; i++) {
+      const char = part.charAt(i);
+      const digit = isNaN(Number(char))
+        ? this.getCharacterEquivalentInNumber(char)
+        : Number(char);
+      const exponent = isInteger ? part.length - 1 - i : -i - 1;
+      const product = maxDecimalPlaces
+        ? Number((digit * Math.pow(base, exponent)).toFixed(maxDecimalPlaces))
+        : digit * Math.pow(base, exponent);
+      const parcel = {
+        digit,
+        base,
+        exponent,
+      };
+
+      parcels.push(parcel);
+      products.push(product);
+    }
+
+    return {
+      parcels,
+      products,
+    };
+  }
+
+  private getCharacterEquivalentInNumber(char: string): number {
+    const letterCodeA = 65;
+    const numericalValueEquivalentToA = 10;
+    const charCode = char.charCodeAt(0);
+    const equivalentNumber =
+      charCode - letterCodeA + numericalValueEquivalentToA;
+    return equivalentNumber;
+  }
+
+  private getAggregationResult(
+    part: string,
+    aggregationOf: number,
+    isInteger: boolean = true
+  ) {
+    const aggregations: string[] = [];
+    const convertedAggregations: string[] = [];
+
+    let isMultiple = part.length % aggregationOf ? false : true;
+
+    while (!isMultiple) {
+      part = isInteger
+        ? part.padStart(part.length + 1, "0")
+        : part.padEnd(part.length + 1, "0");
+      isMultiple = part.length % aggregationOf ? false : true;
+    }
+
+    const magnitudeCorrectedNumber = part;
+
+    for (let i = 0; i < magnitudeCorrectedNumber.length; i += aggregationOf) {
+      const aggregation = magnitudeCorrectedNumber.slice(i, aggregationOf + i);
+      const binaryAggregation = Number(aggregation);
+      const convertedAggregation =
+        this.getConvertedAggregation(binaryAggregation);
+
+      aggregations.push(aggregation);
+      convertedAggregations.push(convertedAggregation);
+    }
+
+    return { aggregations, convertedAggregations, magnitudeCorrectedNumber };
+  }
+
+  private getDisaggregationResult(part: string, disaggregationOf: number) {
+    const digits: string[] = [];
+    const disaggregations: string[] = [];
+
+    for (let i = 0; i < part.length; i++) {
+      const digit = part.charAt(i);
       let bits = this.getConvertedDisaggregation(digit);
 
       while (bits.length < disaggregationOf)
@@ -215,23 +470,7 @@ export default class NumberingSystems {
       disaggregations.push(disaggregation);
     }
 
-    const convertedNumber = disaggregations.join("");
-    return {
-      id: NumberingSystemsMethods.DISAGGREGATION,
-      targetBase: 2,
-      convertedNumber,
-      digits,
-      disaggregations,
-    };
-  }
-
-  private getCharacterEquivalentInNumber(char: string): number {
-    const letterCodeA = 65;
-    const numericalValueEquivalentToA = 10;
-    const charCode = char.charCodeAt(0);
-    const equivalentNumber =
-      charCode - letterCodeA + numericalValueEquivalentToA;
-    return equivalentNumber;
+    return { digits, disaggregations };
   }
 
   private getConvertedAggregation(binaryAggregation: number) {

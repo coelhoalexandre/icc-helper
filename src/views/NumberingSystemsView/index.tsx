@@ -5,7 +5,7 @@ import { KnownBases } from "../../types/KnownBases";
 interface NumberingSystemViewProps {
   knownBases: KnownBases;
   numInput: string;
-  baseInput: string;
+  baseInput: number;
 }
 
 export default function NumberingSystemView({
@@ -38,26 +38,48 @@ export default function NumberingSystemView({
               })}
             </p>
             <p>
-              {knownBase.products.join(" + ")} = {knownBase.convertedNumber}
+              {knownBase.products.join(" + ").replace(".", ",")} ={" "}
+              {knownBase.convertedNumber}
             </p>
           </>
         );
         break;
 
       case NumberingSystemsMethods.INVERSE_TFN:
+        console.log(knownBase.multiplications);
         method = (
           <div className={styles.inverseTFN}>
-            {knownBase.divisions.map((division) => {
-              return (
-                <>
-                  <p>
-                    {division.dividend} / {division.divider} ={" "}
-                    {division.quotient} | Resto:{" "}
-                    <strong>{division.rest}</strong>
-                  </p>
-                </>
-              );
-            })}
+            <div className={styles.divisions}>
+              {knownBase.divisions.map((division) => {
+                return (
+                  <>
+                    <p>
+                      {division.dividend} / {division.divider} ={" "}
+                      {division.quotient} | Resto:{" "}
+                      <strong>{division.rest}</strong>
+                    </p>
+                  </>
+                );
+              })}
+            </div>
+            {knownBase.multiplications.length ? (
+              <div className={styles.multiplications}>
+                {knownBase.multiplications.map((multiplication) => {
+                  return (
+                    <>
+                      <p>
+                        {multiplication.factorLeft} x{" "}
+                        {multiplication.factorRight} ={" "}
+                        <strong>{multiplication.product.integerPart}</strong>,
+                        {multiplication.product.fractionalPart}
+                      </p>
+                    </>
+                  );
+                })}
+              </div>
+            ) : (
+              ""
+            )}
           </div>
         );
         break;
@@ -70,17 +92,19 @@ export default function NumberingSystemView({
               <strong>{knownBase.magnitudeCorrectedNumber}</strong>
             </p>
             <p className="--marginTop">
-              {knownBase.aggregations.map((aggregation) => (
-                <span className={styles.aggregationSpan}>
+              {knownBase.aggregations.map((aggregation, index) => (
+                <span className={styles.aggregationSpan} key={index}>
                   <strong>{aggregation}</strong>
                 </span>
               ))}{" "}
               ={" "}
-              {knownBase.convertedAggregations.map((convertedAggregation) => (
-                <span className={styles.aggregationSpan}>
-                  <strong>{convertedAggregation}</strong>
-                </span>
-              ))}
+              {knownBase.convertedAggregations.map(
+                (convertedAggregation, index) => (
+                  <span className={styles.aggregationSpan} key={index}>
+                    <strong>{convertedAggregation}</strong>
+                  </span>
+                )
+              )}
             </p>
           </>
         );

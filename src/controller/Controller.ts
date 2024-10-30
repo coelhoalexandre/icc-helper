@@ -15,14 +15,23 @@ export default class Controller {
     this.setViewUpdate = setViewUpdate;
   }
 
-  public getNumInputPattern(baseInput: string) {
+  public getNumInputPattern(baseInput: number) {
     return this.numberingSystem.getNumInputPattern(baseInput);
   }
 
-  public render(baseInput: string, numInput: string) {
+  public isNeedMaxNumDecPlaces(base: number): boolean {
+    return this.numberingSystem.isNeedMaxNumDecPlaces(base);
+  }
+
+  public render(
+    baseInput: number,
+    numInput: string,
+    maxDecimalPlaces: number | undefined
+  ) {
     const knownBases = this.numberingSystem.getNumberConvertedToKnownBases(
       baseInput,
-      numInput
+      numInput,
+      maxDecimalPlaces
     );
 
     this.setViewUpdate({ knownBases, numInput, baseInput });

@@ -1,14 +1,16 @@
 import { NumberingSystemsMethods } from "../enums/NumberingSystemsMethods";
 import INumberingSystemsMethod from "./INumberingSystemsMethod";
+import NumParts from "./NumParts";
 
 export default interface TFN extends INumberingSystemsMethod {
   id: NumberingSystemsMethods.TFN;
+  numParts: NumParts;
   products: number[];
   parcels: Parcel[];
 }
 
 export interface Parcel {
   digit: number;
-  base: string;
+  base: number;
   exponent: number;
 }

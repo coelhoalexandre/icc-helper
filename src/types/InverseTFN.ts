@@ -1,15 +1,25 @@
 import { NumberingSystemsMethods } from "../enums/NumberingSystemsMethods";
 import INumberingSystemsMethod from "./INumberingSystemsMethod";
+import NumParts from "./NumParts";
 
 export default interface InverseTFN extends INumberingSystemsMethod {
   id: NumberingSystemsMethods.INVERSE_TFN;
+  numParts: NumParts;
   divisions: Divisions[];
-  num: string;
+  multiplications: Multiplications[];
 }
 
-interface Divisions {
+export interface Divisions {
   dividend: number;
   divider: number;
   quotient: number;
+  rest: number;
+}
+
+export interface Multiplications {
+  factorLeft: number;
+  factorRight: number;
+  integer: number;
+  product: NumParts;
   rest: number;
 }
