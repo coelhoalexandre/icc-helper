@@ -25,6 +25,8 @@ export default function BinaryArithmeticSection() {
   ];
 
   const [architecturalSizeInput, setArchitecturalSizeInput] = useState(1);
+  const [integerPartQuantInput, setIntegerPartQuantInput] = useState(1);
+  const [fractionalPartQuantInput, setFractionalPartQuantInput] = useState(0);
   const [operationSelector, setOperationSelector] = useState(
     OperationsValues.SUM
   );
@@ -50,7 +52,7 @@ export default function BinaryArithmeticSection() {
   return (
     <>
       <h2>Aritmética Binária</h2>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} className={styles.binaryArithmeticForm}>
         <label htmlFor="architecturalSizeInput">
           Diga o tamanho da arquitetura:
         </label>
@@ -63,6 +65,39 @@ export default function BinaryArithmeticSection() {
           value={architecturalSizeInput}
           onChange={(e) => setArchitecturalSizeInput(Number(e.target.value))}
         />
+        <fieldset className={styles.fieldsetParts}>
+          <legend>Digite a quantidade de bits para a parte.</legend>
+          <span>
+            <label htmlFor="integerPartQuantInput">Inteira: </label>
+            <input
+              type="number"
+              id="integerPartQuantInput"
+              name="integerPartQuantInput"
+              min={1}
+              defaultValue={1}
+              required
+              value={integerPartQuantInput}
+              onChange={(event) =>
+                setIntegerPartQuantInput(Number(event.target.value))
+              }
+            />
+          </span>
+          <span>
+            <label htmlFor="fractionalPartQuantInput">Fracionária: </label>
+            <input
+              type="number"
+              id="fractionalPartQuantInput"
+              name="fractionalPartQuantInput"
+              min={0}
+              defaultValue={0}
+              required
+              value={fractionalPartQuantInput}
+              onChange={(event) =>
+                setFractionalPartQuantInput(Number(event.target.value))
+              }
+            />
+          </span>
+        </fieldset>
         <label htmlFor="operationSelector">Selecione o a operação</label>
         <select
           name="operationSelector"
@@ -85,7 +120,7 @@ export default function BinaryArithmeticSection() {
           ))}
         </select>
 
-        <fieldset className={styles.numberFields}>
+        <fieldset>
           <legend>
             Digite os números em binário, respeitando o tamanho da arquitetura.
           </legend>

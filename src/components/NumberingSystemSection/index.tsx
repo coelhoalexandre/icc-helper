@@ -67,6 +67,7 @@ export default function NumberingSystemSection() {
           value={baseInput}
           onChange={(event) => setBaseInput(Number(event.target.value))}
         />
+
         <label htmlFor="numInput">Digite o número na respectiva base: </label>
         <input
           type="text"
