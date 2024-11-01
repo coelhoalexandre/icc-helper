@@ -38,6 +38,7 @@ export default class NumberingSystems {
 
   public getNumInputPattern(baseInput: number): string {
     const regExComma = "?:,";
+
     if (baseInput <= 10) return `(${regExComma}|[0-${baseInput - 1}])*`;
     else
       return `(${regExComma}|[0-9${this.symbols[0]}-${
@@ -50,6 +51,17 @@ export default class NumberingSystems {
     if (basesThatNotNeed.includes(base)) return false;
 
     return true;
+  }
+
+  public getIntegerFractionalParts(num: string): NumParts {
+    const indexOfComma = num.indexOf(",");
+
+    if (indexOfComma === -1) return { integerPart: num, fractionalPart: null };
+
+    const integerPart = num.slice(0, indexOfComma);
+    const fractionalPart = num.slice(indexOfComma + 1);
+
+    return { integerPart, fractionalPart };
   }
 
   public getNumberConvertedToKnownBases(
@@ -123,17 +135,6 @@ export default class NumberingSystems {
         hexaNumber = this.aggregation(16, binaryNumber.numParts);
         return [decimalNumber, binaryNumber, octalNumber, hexaNumber];
     }
-  }
-
-  private getIntegerFractionalParts(num: string): NumParts {
-    const indexOfComma = num.indexOf(",");
-
-    if (indexOfComma === -1) return { integerPart: num, fractionalPart: null };
-
-    const integerPart = num.slice(0, indexOfComma);
-    const fractionalPart = num.slice(indexOfComma + 1);
-
-    return { integerPart, fractionalPart };
   }
 
   private TFN(

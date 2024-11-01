@@ -1,7 +1,10 @@
-import { useState } from "react";
+import styles from "./BinaryArithmeticSection.module.css";
+import { useContext, useLayoutEffect, useState } from "react";
 import { OperationsValues } from "../../enums/OperationsValues";
+import { ControllerContext } from "../../context/ControllerContext";
 
 export default function BinaryArithmeticSection() {
+  const { controller } = useContext(ControllerContext);
   const operations = [
     {
       id: OperationsValues.SUM,
@@ -21,15 +24,33 @@ export default function BinaryArithmeticSection() {
     },
   ];
 
-  const [architecturalSizeInput, setArchitecturalSizeInput] = useState("1");
-  const [operationSelector, setOperationSelector] = useState("");
+  const [architecturalSizeInput, setArchitecturalSizeInput] = useState(1);
+  const [operationSelector, setOperationSelector] = useState(
+    OperationsValues.SUM
+  );
   const [num1Input, setNum1Input] = useState("");
   const [num2Input, setNum2Input] = useState("");
 
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    controller.renderBinArithView(
+      architecturalSizeInput,
+      operationSelector,
+      num1Input,
+      num2Input
+    );
+  };
+
+  useLayoutEffect(() => {
+    if (num1Input.length > architecturalSizeInput)
+      setNum1Input(num1Input.slice(-1));
+    if (num2Input.length > architecturalSizeInput)
+      setNum2Input(num2Input.slice(-1));
+  }, [num1Input, num2Input, architecturalSizeInput]);
   return (
     <>
       <h2>Aritmética Binária</h2>
-      <form>
+      <form onSubmit={onSubmit}>
         <label htmlFor="architecturalSizeInput">
           Diga o tamanho da arquitetura:
         </label>
@@ -40,7 +61,7 @@ export default function BinaryArithmeticSection() {
           min={1}
           required
           value={architecturalSizeInput}
-          onChange={(e) => setArchitecturalSizeInput(e.target.value)}
+          onChange={(e) => setArchitecturalSizeInput(Number(e.target.value))}
         />
         <label htmlFor="operationSelector">Selecione o a operação</label>
         <select
@@ -48,37 +69,47 @@ export default function BinaryArithmeticSection() {
           id="operationSelector"
           required
           value={operationSelector}
-          onChange={(e) => setOperationSelector(e.target.value)}
+          defaultValue={OperationsValues.SUM}
+          onChange={(e) =>
+            setOperationSelector(e.target.value as OperationsValues)
+          }
         >
           {operations.map((operation) => (
-            <option key={operation.id} value={operation.id}>
+            <option
+              key={operation.id}
+              value={operation.id}
+              disabled={operation.id === OperationsValues.SUM ? false : true}
+            >
               {operation.text}
             </option>
           ))}
         </select>
 
-        <label htmlFor="primeiroNum">
-          Digite o primeiro número da entrada em binário
-        </label>
-        <input
-          type="text"
-          name="primeiroNum"
-          id="primeiroNum"
-          required
-          value={num1Input}
-          onChange={(e) => setNum1Input(e.target.value)}
-        />
-        <label htmlFor="segundoNum">
-          Digite o segundo número da entrada em binário
-        </label>
-        <input
-          type="text"
-          name="segundoNum"
-          id="segundoNum"
-          required
-          value={num2Input}
-          onChange={(e) => setNum2Input(e.target.value)}
-        />
+        <fieldset className={styles.numberFields}>
+          <legend>
+            Digite os números em binário, respeitando o tamanho da arquitetura.
+          </legend>
+          <label htmlFor="primeiroNum">Primeiro Número: </label>
+          <input
+            type="text"
+            name="primeiroNum"
+            id="primeiroNum"
+            pattern={controller.getNumInputPattern(2)}
+            required
+            value={num1Input}
+            onChange={(e) => setNum1Input(e.target.value)}
+          />
+          <label htmlFor="segundoNum">Segundo Número: </label>
+          <input
+            type="text"
+            name="segundoNum"
+            id="segundoNum"
+            pattern={controller.getNumInputPattern(2)}
+            required
+            value={num2Input}
+            onChange={(e) => setNum2Input(e.target.value)}
+          />
+        </fieldset>
         <button type="submit">Calcular</button>
       </form>
     </>

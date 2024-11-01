@@ -14,7 +14,7 @@ export default function NumberingSystemSection() {
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (numInput.at(numInput.length - 1) === ",") setNumInput(numInput + 0);
-    controller.render(baseInput, numInput, maxDecimalPlaces);
+    controller.renderNumSysView(baseInput, numInput, maxDecimalPlaces);
   };
 
   useLayoutEffect(() => {
