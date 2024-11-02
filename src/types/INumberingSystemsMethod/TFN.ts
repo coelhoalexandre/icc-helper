@@ -1,6 +1,6 @@
-import { NumberingSystemsMethods } from "../enums/NumberingSystemsMethods";
-import INumberingSystemsMethod from "./INumberingSystemsMethod";
-import NumParts from "./NumParts";
+import { NumberingSystemsMethods } from "../../enums/NumberingSystemsMethods";
+import INumberingSystemsMethod from ".";
+import NumParts from "../NumParts";
 
 export default interface TFN extends INumberingSystemsMethod {
   id: NumberingSystemsMethods.TFN;

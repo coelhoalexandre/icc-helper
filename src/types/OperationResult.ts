@@ -1,29 +1,40 @@
 import { OperationsValues } from "../enums/OperationsValues";
 
 export type OperationResult =
-  | SumOperation
+  | AdditionOperation
   | SubtractionOperation
   | MultiplicationOperation
   | DivisionOperation;
 
+export type Diagnostic = "OK" | "OVERFLOW" | "UNDERFLOW";
+
 interface IOperationResult {
   id: OperationsValues;
-  operationResult: string;
+  num1: string;
+  num2: string;
+  registerResult: string;
+  visualResult: string;
+  diagnostic: Diagnostic;
+  signal: string;
 }
 
-interface SumOperation extends IOperationResult {
-  id: OperationsValues.SUM;
+interface AdditionOperation extends IOperationResult {
+  id: OperationsValues.ADD;
+  signal: "+";
   carries: string;
 }
 
 interface SubtractionOperation extends IOperationResult {
-  id: OperationsValues.SUBTRACTION;
+  id: OperationsValues.SUB;
+  signal: "-";
 }
 
 interface MultiplicationOperation extends IOperationResult {
-  id: OperationsValues.MULTIPLICATION;
+  id: OperationsValues.MUL;
+  signal: "x";
 }
 
 interface DivisionOperation extends IOperationResult {
-  id: OperationsValues.DIVISION;
+  id: OperationsValues.DIV;
+  signal: "÷";
 }

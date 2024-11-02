@@ -1,10 +1,13 @@
 import { NumberingSystemsMethods } from "../enums/NumberingSystemsMethods";
-import Aggregation from "../types/Aggregation";
-import Disaggregation from "../types/Disaggregation";
-import InverseTFN, { Divisions, Multiplications } from "../types/InverseTFN";
+import Aggregation from "../types/INumberingSystemsMethod/Aggregation";
+import Disaggregation from "../types/INumberingSystemsMethod/Disaggregation";
+import InverseTFN, {
+  Divisions,
+  Multiplications,
+} from "../types/INumberingSystemsMethod/InverseTFN";
 import { KnownBases } from "../types/KnownBases";
 import NumParts from "../types/NumParts";
-import TFN, { Parcel } from "../types/TFN";
+import TFN, { Parcel } from "../types/INumberingSystemsMethod/TFN";
 
 export default class NumberingSystems {
   private symbols = [
@@ -53,10 +56,16 @@ export default class NumberingSystems {
     return true;
   }
 
-  public getIntegerFractionalParts(num: string): NumParts {
+  public getIntegerFractionalParts(
+    num: string,
+    isFractional?: boolean
+  ): NumParts {
     const indexOfComma = num.indexOf(",");
 
-    if (indexOfComma === -1) return { integerPart: num, fractionalPart: null };
+    if (indexOfComma === -1) {
+      if (!isFractional) return { integerPart: num, fractionalPart: null };
+      else return { integerPart: num, fractionalPart: "0" };
+    }
 
     const integerPart = num.slice(0, indexOfComma);
     const fractionalPart = num.slice(indexOfComma + 1);
@@ -64,10 +73,34 @@ export default class NumberingSystems {
     return { integerPart, fractionalPart };
   }
 
+  getVerifiedNum = (num: string, includesCommaNumInput: boolean) => {
+    const numInputUpperCase = num.toUpperCase();
+
+    let verifiedNum = numInputUpperCase;
+
+    if (includesCommaNumInput) {
+      const numInputNoDot = verifiedNum.replace(".", ",");
+
+      const numInputNoCommaStart = !numInputNoDot.indexOf(",")
+        ? numInputNoDot.padStart(verifiedNum.length + 1, "0")
+        : numInputNoDot;
+
+      const numInputNoRepeatedCommas = numInputNoCommaStart
+        .split("")
+        .filter((char, i, arr) => char !== "," || arr.indexOf(char) === i)
+        .join("");
+
+      verifiedNum = numInputNoRepeatedCommas;
+    }
+
+    return verifiedNum;
+  };
+
   public getNumberConvertedToKnownBases(
     baseInput: number,
     numInput: string,
-    maxDecimalPlaces: number | undefined
+
+    maxDecimalPlaces?: number
   ): KnownBases {
     let decimalNumber: TFN;
 
@@ -237,7 +270,6 @@ export default class NumberingSystems {
       let rest = Number(fractionalPart) / 10 ** fractionalPart.length;
 
       const factorRight = base;
-      console.log(rest);
       do {
         const factorLeft = rest;
         rest = factorLeft * factorRight;

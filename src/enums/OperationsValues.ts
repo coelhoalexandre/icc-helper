@@ -1,6 +1,6 @@
 export enum OperationsValues {
-  SUM = "sum",
-  SUBTRACTION = "subtraction",
-  MULTIPLICATION = "multiplication",
-  DIVISION = "division",
+  ADD = "Adição (+)",
+  SUB = "Subtração (-)",
+  MUL = "Multiplicação (x)",
+  DIV = "Divisão (%)",
 }

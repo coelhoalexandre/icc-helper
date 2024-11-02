@@ -2,28 +2,41 @@ import { useEffect, useMemo, useState } from "react";
 import Controller from "../../controller/Controller";
 import NumberingSystemView from "../../views/NumberingSystemsView";
 import { ControllerContext } from ".";
-import { NumberingSystemData } from "../../types/NumberingSystemData";
+import { RenderData } from "../../types/RenderData";
+import { SectionValues } from "../../enums/SectionValues";
+import BinaryArithmeticView from "../../views/BinaryArithmeticView";
 
 export const ControllerProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const [viewUpdate, setViewUpdate] = useState<NumberingSystemData | null>(
-    null
-  );
+  const [viewUpdate, setViewUpdate] = useState<RenderData | null>(null);
   const controller = useMemo(() => new Controller(setViewUpdate), []);
   const [viewElement, setViewElement] = useState<JSX.Element | null>(null);
 
   useEffect(() => {
     if (viewUpdate) {
-      setViewElement(
-        <NumberingSystemView
-          knownBases={viewUpdate.knownBases}
-          numInput={viewUpdate.numInput}
-          baseInput={viewUpdate.baseInput}
-        />
-      );
+      switch (viewUpdate.id) {
+        case SectionValues.NUMBERING_SYSTEM:
+          setViewElement(
+            <NumberingSystemView
+              knownBases={viewUpdate.knownBases}
+              numInput={viewUpdate.numInput}
+              baseInput={viewUpdate.baseInput}
+            />
+          );
+          break;
+        case SectionValues.BINARY_ARITHMETIC:
+          setViewElement(
+            <BinaryArithmeticView
+              architecturalSize={viewUpdate.architecturalSize}
+              operationResult={viewUpdate.operationResult}
+              TFN={viewUpdate.TFN}
+            />
+          );
+          break;
+      }
     }
     setViewUpdate(null);
   }, [viewElement, viewUpdate]);

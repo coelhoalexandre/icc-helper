@@ -8,7 +8,7 @@ export default function NumberingSystemSection() {
   const [maxDecimalPlaces, setMaxDecimalPlaces] = useState<
     number | undefined
   >();
-  const [includesCommaNumInput, setincludesCommaNumInput] = useState(false);
+  const [includesCommaNumInput, setIncludesCommaNumInput] = useState(false);
   const getNumInputPattern = () => controller.getNumInputPattern(baseInput);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -18,34 +18,9 @@ export default function NumberingSystemSection() {
   };
 
   useLayoutEffect(() => {
-    const getVerifiedInput = () => {
-      setincludesCommaNumInput(
-        numInput.includes(",") || numInput.includes(".")
-      );
-
-      const numInputUpperCase = numInput.toUpperCase();
-
-      let verifiedInput = numInputUpperCase;
-
-      if (includesCommaNumInput) {
-        const numInputNoDot = verifiedInput.replace(".", ",");
-
-        const numInputNoCommaStart = !numInputNoDot.indexOf(",")
-          ? numInputNoDot.padStart(verifiedInput.length + 1, "0")
-          : numInputNoDot;
-
-        const numInputNoRepeatedCommas = numInputNoCommaStart
-          .split("")
-          .filter((char, i, arr) => char !== "," || arr.indexOf(char) === i)
-          .join("");
-
-        verifiedInput = numInputNoRepeatedCommas;
-      }
-
-      return verifiedInput;
-    };
-    setNumInput(getVerifiedInput());
-  }, [numInput, includesCommaNumInput]);
+    setIncludesCommaNumInput(numInput.includes(",") || numInput.includes("."));
+    setNumInput(controller.getVerifiedNum(numInput, includesCommaNumInput));
+  }, [numInput, includesCommaNumInput, controller]);
 
   useEffect(() => {
     if (includesCommaNumInput) setMaxDecimalPlaces(4);

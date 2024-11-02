@@ -29,18 +29,7 @@
   font-size: 1.4rem;
 }
 
-.method .inverseTFN {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  text-align: end;
-}
-
-.method .inverseTFN .multiplications {
-  width: 50%;
-}
-
-.method .aggregationSpan {
+.aggregationSpan {
   margin-top: 1rem;
   margin-right: 5px;
   border-top: 1px solid var(--primary-color);

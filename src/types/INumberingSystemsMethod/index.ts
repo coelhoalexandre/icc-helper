@@ -1,4 +1,4 @@
-import { NumberingSystemsMethods } from "../enums/NumberingSystemsMethods";
+import { NumberingSystemsMethods } from "../../enums/NumberingSystemsMethods";
 
 export default interface INumberingSystemsMethod {
   id: NumberingSystemsMethods;

@@ -1,65 +1,87 @@
+import { ArchitecturesForNumberParts } from "../enums/ArchitecturesForNumberParts";
 import { OperationsValues } from "../enums/OperationsValues";
+import ArchitectureSize from "../types/ArchitectureSize";
 import NumParts from "../types/NumParts";
-import { OperationResult } from "../types/OperationResult";
+import { Diagnostic, OperationResult } from "../types/OperationResult";
 
 export default class BinaryArithmetic {
+  private architectureSize: ArchitectureSize | null = null;
+  public operations = Object.values(OperationsValues);
+
+  public architectureForNumberPart = Object.values(ArchitecturesForNumberParts);
+
   public getOperationResult(
-    architecturalSizeInput: number,
+    architecturalSizeInput: ArchitectureSize,
     operationSelector: OperationsValues,
     num1PartsInput: NumParts,
     num2PartsInput: NumParts
   ) {
-    const num1Full = num1PartsInput.fractionalPart
-      ? num1PartsInput.integerPart + num1PartsInput.fractionalPart
-      : num1PartsInput.integerPart;
-    const num2Full = num2PartsInput.fractionalPart
-      ? num2PartsInput.integerPart + num2PartsInput.fractionalPart
-      : num2PartsInput.integerPart;
-
-    const num1FullCorrected = this.getNumMagnitudeCorrection(
-      num1Full,
-      architecturalSizeInput
-    );
-    const num2FullCorrected = this.getNumMagnitudeCorrection(
-      num2Full,
-      architecturalSizeInput
-    );
-    console.log(
-      architecturalSizeInput,
-      operationSelector,
+    this.architectureSize = architecturalSizeInput;
+    const num1PartsCorrected = this.getNumPartsMagnitudeCorrection(
       num1PartsInput,
-      num2PartsInput
+      architecturalSizeInput
     );
+    const num2PartsCorrected = this.getNumPartsMagnitudeCorrection(
+      num2PartsInput,
+      architecturalSizeInput
+    );
+
+    const num1Full = num1PartsCorrected.fractionalPart
+      ? num1PartsCorrected.integerPart + num1PartsCorrected.fractionalPart
+      : num1PartsCorrected.integerPart;
+
+    const num2Full = num2PartsCorrected.fractionalPart
+      ? num2PartsCorrected.integerPart + num2PartsCorrected.fractionalPart
+      : num2PartsCorrected.integerPart;
 
     let operationResult: OperationResult;
 
     switch (operationSelector) {
-      case OperationsValues.SUM:
-        operationResult = this.getSumResult(
-          num1FullCorrected,
-          num2FullCorrected,
-          architecturalSizeInput
-        );
-        break;
-
-      case OperationsValues.SUBTRACTION:
+      case OperationsValues.ADD:
         operationResult = {
-          id: OperationsValues.SUBTRACTION,
-          operationResult: "",
+          id: OperationsValues.ADD,
+          signal: "+",
+          ...this.getAdditionResult(
+            num1Full,
+            num2Full,
+            architecturalSizeInput.total
+          ),
         };
         break;
 
-      case OperationsValues.MULTIPLICATION:
+      case OperationsValues.SUB:
         operationResult = {
-          id: OperationsValues.MULTIPLICATION,
-          operationResult: "",
+          id: OperationsValues.SUB,
+          num1: "",
+          num2: "",
+          registerResult: "",
+          visualResult: "",
+          diagnostic: "OK",
+          signal: "-",
         };
         break;
 
-      case OperationsValues.DIVISION:
+      case OperationsValues.MUL:
         operationResult = {
-          id: OperationsValues.MULTIPLICATION,
-          operationResult: "",
+          id: OperationsValues.MUL,
+          num1: "",
+          num2: "",
+          registerResult: "",
+          visualResult: "",
+          diagnostic: "OK",
+          signal: "x",
+        };
+        break;
+
+      case OperationsValues.DIV:
+        operationResult = {
+          id: OperationsValues.DIV,
+          num1: "",
+          num2: "",
+          registerResult: "",
+          visualResult: "",
+          diagnostic: "OK",
+          signal: "÷",
         };
         break;
 
@@ -69,23 +91,43 @@ export default class BinaryArithmetic {
     return operationResult;
   }
 
-  private getNumMagnitudeCorrection(
-    num: string,
-    architecturalSize: number
-  ): string {
-    if (num.length === architecturalSize) return num;
+  private getNumPartsMagnitudeCorrection(
+    num: NumParts,
+    architecturalSize: ArchitectureSize
+  ): NumParts {
+    let remainingZeros: number;
+    if (num.integerPart.length < architecturalSize.integerPart) {
+      remainingZeros = architecturalSize.integerPart - num.integerPart.length;
 
-    const remainingZeros = architecturalSize - num.length;
+      num.integerPart = num.integerPart.padStart(
+        num.integerPart.length + remainingZeros,
+        "0"
+      );
+    }
 
-    const numMagnitudeCorrection = num.padStart(
-      num.length + remainingZeros,
-      "0"
-    );
+    if (
+      num.fractionalPart &&
+      num.fractionalPart.length < architecturalSize.fractionalPart
+    ) {
+      remainingZeros =
+        architecturalSize.fractionalPart - num.fractionalPart.length;
 
-    return numMagnitudeCorrection;
+      num.fractionalPart = num.fractionalPart.padEnd(
+        num.fractionalPart.length + remainingZeros,
+        "0"
+      );
+    }
+
+    const numPartsMagnitudeCorrection = num;
+
+    return numPartsMagnitudeCorrection;
   }
 
-  private getSumResult(num1: string, num2: string, architecturalSize: number) {
+  private getAdditionResult(
+    num1: string,
+    num2: string,
+    architecturalSize: number
+  ) {
     const sums: string[] = [];
     const carriesArr: string[] = ["0"];
 
@@ -93,7 +135,6 @@ export default class BinaryArithmetic {
       const rightParcel = num1.at(i);
       const leftParcel = num2.at(i);
       let carry = carriesArr[0];
-
       if (!rightParcel || !leftParcel) throw new Error("Undefined Parcels");
 
       let sum = (
@@ -122,9 +163,34 @@ export default class BinaryArithmetic {
       carriesArr.unshift(carry);
     }
 
-    const operationResult = sums.join("");
+    const registerResult = sums.join("");
+    const visualResult = this.getVisualResult(registerResult);
     const carries = carriesArr.join("");
 
-    return { id: OperationsValues.SUM, operationResult, carries };
+    let diagnostic: Diagnostic = "OK";
+    if (Number(carriesArr[0])) diagnostic = "OVERFLOW";
+
+    return {
+      num1,
+      num2,
+      registerResult,
+      visualResult,
+      carries,
+      diagnostic,
+    };
+  }
+
+  private getVisualResult(registerResult: string) {
+    if (this.architectureSize) {
+      const firstHalf = registerResult.slice(
+        0,
+        this.architectureSize.integerPart
+      );
+      const secondHalf = registerResult.slice(
+        this.architectureSize.integerPart
+      );
+      return secondHalf ? firstHalf + "," + secondHalf : firstHalf;
+    }
+    throw new Error("Architecture size not defined");
   }
 }
