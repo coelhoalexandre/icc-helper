@@ -3,6 +3,7 @@ import { useCallback, useContext, useLayoutEffect, useState } from "react";
 import { OperationsValues } from "../../enums/OperationsValues";
 import { ControllerContext } from "../../context/ControllerContext";
 import { ArchitecturesForNumberParts } from "../../enums/ArchitecturesForNumberParts";
+import InputNumber from "./InputNumber";
 
 export default function BinaryArithmeticSection() {
   const { controller } = useContext(ControllerContext);
@@ -10,6 +11,8 @@ export default function BinaryArithmeticSection() {
   const architecturesForNumberPart = controller.getArchitecturesForNumberPart();
 
   const [architecturalSizeInput, setArchitecturalSizeInput] = useState(1);
+  const [isThereSignalBit, setIsThereSignalBit] = useState(false);
+  const [isThereSignalBitDisabled, setIsThereSignalDisabled] = useState(false);
   const [
     architecturesForNumberPartsInput,
     setArchitecturesForNumberPartsInput,
@@ -23,11 +26,15 @@ export default function BinaryArithmeticSection() {
   );
   const [num1Input, setNum1Input] = useState("");
   const [num2Input, setNum2Input] = useState("");
+  const [isNum1Complement, setIsNum1Complement] = useState(false);
+  const [isNum2Complement, setIsNum2Complement] = useState(false);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     if (num1Input.at(num1Input.length - 1) === ",") setNum1Input(num1Input + 0);
     if (num2Input.at(num2Input.length - 1) === ",") setNum2Input(num2Input + 0);
+
     controller.renderBinArithView(
       {
         total: architecturalSizeInput,
@@ -35,8 +42,9 @@ export default function BinaryArithmeticSection() {
         fractionalPart: fractionalPartQuantInput,
       },
       operationSelector,
-      num1Input,
-      num2Input
+      { num: num1Input, isComplement: isNum1Complement },
+      { num: num2Input, isComplement: isNum2Complement },
+      isThereSignalBit
     );
   };
 
@@ -82,6 +90,11 @@ export default function BinaryArithmeticSection() {
           fractionalPartQuant--;
         }
 
+        if (isThereSignalBit && integerPartQuant < 2) {
+          integerPartQuant = 2;
+          fractionalPartQuant--;
+        }
+
         setArchitecturalSizeInput(value);
         setIntegerPartQuantInput(integerPartQuant);
         setFractionalPartQuantInput(fractionalPartQuant);
@@ -104,53 +117,36 @@ export default function BinaryArithmeticSection() {
     }
   };
 
-  const checkNum = (num: string, id: "Num1" | "Num2") => {
-    const includesCommaNumInput = num.includes(",") || num.includes(".");
-    const verifiedNum = controller.getVerifiedNum(num, includesCommaNumInput);
-
-    if (includesCommaNumInput && !fractionalPartQuantInput)
-      throw new Error("There is no fractional part for this number");
-
-    const numParts = controller.getIntegerFractionalParts(verifiedNum);
-
-    if (numParts.integerPart.length > integerPartQuantInput)
-      throw new Error(
-        "The integer part cannot be larger than the space reserved for it"
-      );
-
-    if (
-      numParts.fractionalPart &&
-      numParts.fractionalPart.length > integerPartQuantInput
-    )
-      throw new Error(
-        "The fractional part cannot be larger than the space reserved for it"
-      );
-
-    switch (id) {
-      case "Num1":
-        setNum1Input(verifiedNum);
-        break;
-      case "Num2":
-        setNum2Input(verifiedNum);
-        break;
-      default:
-        throw new Error("Id not found ");
-    }
-  };
-
   const getPartsQuant = useCallback(
     (integerMultiplier: number, fractionalMultiplier: number) => {
       const integerPartQuant = Math.ceil(
         architecturalSizeInput * integerMultiplier
       );
+
       const fractionalPartQuant = Math.floor(
         architecturalSizeInput * fractionalMultiplier
       );
 
+      if (isThereSignalBit && integerPartQuant < 2)
+        return {
+          integerPartQuant: 2,
+          fractionalPartQuant: fractionalPartQuant - 1,
+        };
+
       return { integerPartQuant, fractionalPartQuant };
     },
-    [architecturalSizeInput]
+    [architecturalSizeInput, isThereSignalBit]
   );
+
+  useLayoutEffect(() => {
+    if (isNum1Complement || isNum2Complement) {
+      setIsThereSignalBit(true);
+      setIsThereSignalDisabled(true);
+    }
+
+    if (!(isNum1Complement || isNum2Complement))
+      setIsThereSignalDisabled(false);
+  }, [isNum1Complement, isNum2Complement]);
 
   useLayoutEffect(() => {
     setIsPartQuantInputDisabled(true);
@@ -207,18 +203,33 @@ export default function BinaryArithmeticSection() {
     <>
       <h2>Aritmética Binária</h2>
       <form onSubmit={onSubmit} className={styles.binaryArithmeticForm}>
-        <label htmlFor="architecturalSizeInput">
-          Diga o tamanho da arquitetura:
-        </label>
-        <input
-          type="number"
-          id="architecturalSizeInput"
-          name="architecturalSizeInput"
-          min={1}
-          required
-          value={architecturalSizeInput}
-          onChange={(event) => checkPartsQuant(event, "ArchitecturalSize")}
-        />
+        <div className={styles.container}>
+          <div className={styles.wrapper}>
+            <label htmlFor="architecturalSizeInput">
+              Diga o tamanho da arquitetura:
+            </label>
+            <input
+              type="number"
+              id="architecturalSizeInput"
+              name="architecturalSizeInput"
+              min={isThereSignalBit ? 2 : 1}
+              required
+              value={architecturalSizeInput}
+              onChange={(event) => checkPartsQuant(event, "ArchitecturalSize")}
+            />
+          </div>
+          <span>
+            <label htmlFor="isThereSignalBit">Tem bit de Sinal?</label>
+            <input
+              type="checkbox"
+              id="isThereSignalBit"
+              name="isThereSignalBit"
+              disabled={isThereSignalBitDisabled}
+              checked={isThereSignalBit}
+              onChange={(event) => setIsThereSignalBit(event.target.checked)}
+            />
+          </span>
+        </div>
         <fieldset className={styles.fieldsetParts}>
           <legend>Selecione a quantidade de bits para as partes: </legend>
 
@@ -250,7 +261,7 @@ export default function BinaryArithmeticSection() {
               type="number"
               id="integerPartQuantInput"
               name="integerPartQuantInput"
-              min={1}
+              min={isThereSignalBit ? 2 : 1}
               defaultValue={1}
               required
               disabled={isPartQuantInputDisabled}
@@ -286,7 +297,12 @@ export default function BinaryArithmeticSection() {
             <option
               key={operation}
               value={operation}
-              disabled={operation === OperationsValues.ADD ? false : true}
+              disabled={
+                operation === OperationsValues.ADD ||
+                operation === OperationsValues.SUB
+                  ? false
+                  : true
+              }
             >
               {operation}
             </option>
@@ -297,26 +313,34 @@ export default function BinaryArithmeticSection() {
           <legend>
             Digite os números em binário, sem passar o tamanho da arquitetura.
           </legend>
-          <label htmlFor="primeiroNum">Primeiro Número: </label>
-          <input
-            type="text"
-            name="primeiroNum"
+          <InputNumber
             id="primeiroNum"
-            pattern={controller.getNumInputPattern(2)}
-            required
-            value={num1Input}
-            onChange={(e) => checkNum(e.target.value, "Num1")}
-          />
-          <label htmlFor="segundoNum">Segundo Número: </label>
-          <input
-            type="text"
-            name="segundoNum"
+            architectureSize={{
+              total: architecturalSizeInput,
+              integerPart: integerPartQuantInput,
+              fractionalPart: fractionalPartQuantInput,
+            }}
+            num={num1Input}
+            setNum={setNum1Input}
+            isComplement={isNum1Complement}
+            setIsComplement={setIsNum1Complement}
+          >
+            Primeiro Número:{" "}
+          </InputNumber>
+          <InputNumber
             id="segundoNum"
-            pattern={controller.getNumInputPattern(2)}
-            required
-            value={num2Input}
-            onChange={(e) => checkNum(e.target.value, "Num2")}
-          />
+            architectureSize={{
+              total: architecturalSizeInput,
+              integerPart: integerPartQuantInput,
+              fractionalPart: fractionalPartQuantInput,
+            }}
+            num={num2Input}
+            setNum={setNum2Input}
+            isComplement={isNum2Complement}
+            setIsComplement={setIsNum2Complement}
+          >
+            Segundo Número:{" "}
+          </InputNumber>
         </fieldset>
         <button type="submit">Calcular</button>
       </form>

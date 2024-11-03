@@ -1,26 +1,32 @@
 import styles from "./BinaryArithmeticView.module.css";
 import { OperationsValues } from "../../enums/OperationsValues";
-import { OperationResult } from "../../types/OperationResult";
+import OperationResults from "../../types/OperationResult";
 import ArchitectureSize from "../../types/ArchitectureSize";
 import { useBodyWidth } from "../../hooks/useWindowScreen";
 import { useLayoutEffect, useState } from "react";
 import AdditionComponent from "./AdditionComponents";
 import TFN from "../../types/INumberingSystemsMethod/TFN";
 import TFNComponent from "../components/TFNComponent";
+import Calculations from "../../types/Calculations";
 
 interface BinaryArithmeticViewProps {
   architecturalSize: ArchitectureSize;
-  operationResult: OperationResult;
+  operationResults: OperationResults;
+  isThereSignalBit: boolean;
   TFN: TFN;
+  isComplementResult: boolean;
 }
 export default function BinaryArithmeticView({
   architecturalSize,
-  operationResult,
+  operationResults,
+  isThereSignalBit,
   TFN,
+  isComplementResult,
 }: BinaryArithmeticViewProps) {
   const minMaxWidth = 235;
   const [maxWidth, setMaxWidth] = useState(minMaxWidth);
   const bodyWidth = useBodyWidth();
+  const firstOperationResult = operationResults.results[0];
 
   useLayoutEffect(() => {
     const minWidth = 320;
@@ -29,27 +35,44 @@ export default function BinaryArithmeticView({
   }, [bodyWidth]);
 
   const getCalculation = () => {
-    const register1 = { name: "R1", value: operationResult.num1 };
-    const register2 = { name: "R2", value: operationResult.num2 };
+    const register1 = { name: "R1", value: operationResults.register1 };
+    const register2 = { name: "R2", value: operationResults.register2 };
     const register3 = {
       name: "R3",
-      value: `${register1.name} ${operationResult.signal} ${register2.name}`,
+      value: `${register1.name} ${operationResults.signal} ${register2.name}`,
     };
-    let calculation: JSX.Element;
-    switch (operationResult.id) {
-      case OperationsValues.ADD:
-        calculation = <AdditionComponent operationResult={operationResult} />;
-        break;
-      case OperationsValues.SUB:
-        calculation = <></>;
-        break;
-      case OperationsValues.MUL:
-        calculation = <></>;
-        break;
-      case OperationsValues.DIV:
-        calculation = <></>;
-        break;
-    }
+    const calculations: Calculations[] = operationResults.results.map(
+      (operationResult, index) => {
+        switch (operationResult.id) {
+          case OperationsValues.ADD:
+            return {
+              component: (
+                <AdditionComponent
+                  operationResult={operationResult}
+                  isThereSignalBit={isThereSignalBit}
+                  isComplement={operationResult.isComplement}
+                />
+              ),
+              action: `${
+                operationResult.isComplement
+                  ? `Complemento de ${
+                      operationResults.id === OperationsValues.ADD
+                        ? operationResults.results[index - 1].registerResult
+                        : operationResults.register2
+                    }`
+                  : register3.value
+              }`,
+            };
+          case OperationsValues.SUB:
+            return { component: <></>, action: "" };
+          case OperationsValues.MUL:
+            return { component: <></>, action: "" };
+          case OperationsValues.DIV:
+            return { component: <></>, action: "" };
+        }
+      }
+    );
+
     return (
       <section
         className={styles.calculationSection}
@@ -68,22 +91,27 @@ export default function BinaryArithmeticView({
               <strong>{register3.name}:</strong> {register3.value}
             </p>
           </div>
-          <div className={styles.calculationWrapper}>
-            <h4>{register3.value}:</h4>
-            <div className={styles.calculation}>{calculation}</div>
-          </div>
+          {calculations.map((calculation) => (
+            <div className={styles.calculationWrapper}>
+              <h4>{calculation.action}:</h4>
+              <div className={styles.calculation}>{calculation.component}</div>
+            </div>
+          ))}
           <div className={styles.result}>
             <p>
-              Resultado: <strong>{operationResult.visualResult}</strong>
+              Resultado: <strong>{firstOperationResult.visualResult}</strong>
             </p>
             <div className={styles.TFN}>
               <p className={styles.title}>
-                <strong>TFN</strong>
+                <strong>
+                  TFN {isComplementResult ? "do Complemento" : ""}
+                </strong>
               </p>
               <TFNComponent knownBase={TFN} />
             </div>
             <p>
-              Representação em Decimal: <strong>{TFN.convertedNumber}</strong>
+              Representação em Decimal: {isComplementResult ? "-" : ""}
+              <strong>{TFN.convertedNumber}</strong>
             </p>
           </div>
         </div>
@@ -110,10 +138,10 @@ export default function BinaryArithmeticView({
           <h3>E/S ULA</h3>
           <div>
             <p>
-              <strong>Função:</strong> {operationResult.id}
+              <strong>Função:</strong> {operationResults.id}
             </p>
             <p>
-              <strong>Diagnostico:</strong> {operationResult.diagnostic}
+              <strong>Diagnostico:</strong> {firstOperationResult.diagnostic}
             </p>
           </div>
         </div>

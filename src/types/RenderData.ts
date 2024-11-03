@@ -1,4 +1,4 @@
-import { OperationResult } from "./OperationResult";
+import OperationResults from "./OperationResult";
 import { KnownBases } from "./KnownBases";
 import { SectionValues } from "../enums/SectionValues";
 import ArchitectureSize from "./ArchitectureSize";
@@ -16,6 +16,8 @@ interface NumSysData {
 interface BinArithData {
   id: SectionValues.BINARY_ARITHMETIC;
   architecturalSize: ArchitectureSize;
-  operationResult: OperationResult;
+  operationResults: OperationResults;
+  isThereSignalBit: boolean;
   TFN: TFN;
+  isComplementResult: boolean;
 }

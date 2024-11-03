@@ -2,7 +2,11 @@ import styles from "../BinaryArithmeticView.module.css";
 import { OperationsValues } from "../../../enums/OperationsValues";
 import OperationProps from "../../../types/OperationProps";
 
-export default function AdditionComponent({ operationResult }: OperationProps) {
+export default function AdditionComponent({
+  operationResult,
+  isThereSignalBit,
+  isComplement,
+}: OperationProps) {
   if (operationResult.id !== OperationsValues.ADD)
     throw new Error(
       "The Operation Result does not match the Addition Component"
@@ -13,25 +17,35 @@ export default function AdditionComponent({ operationResult }: OperationProps) {
         <p>
           <strong>Carries:</strong>
         </p>
-        <p>
-          <strong>R1:</strong>
-        </p>
-        <p>
-          <strong>R2:</strong>
-        </p>
-        <p>
-          <strong>R3:</strong>
-        </p>
+        {isComplement
+          ? " "
+          : [1, 2, 3].map((value) => (
+              <p key={value}>
+                <strong>R{value}:</strong>
+              </p>
+            ))}
       </div>
       <div>
         <p>
-          <strong>{operationResult.carries[0]}</strong>
-          {operationResult.carries.slice(1)}
+          {isThereSignalBit ? (
+            <>
+              <strong>
+                {operationResult.carries[0]}
+                {operationResult.carries[1]}
+              </strong>
+              {operationResult.carries.slice(2)}
+            </>
+          ) : (
+            <>
+              <strong>{operationResult.carries[0]}</strong>
+              {operationResult.carries.slice(1)}
+            </>
+          )}
         </p>
-        <p>{operationResult.num1}</p>
+        <p>{operationResult.leftOperand}</p>
         <p className={styles.lastOperand}>
           {operationResult.signal}
-          {operationResult.num2}
+          {operationResult.rightOperand}
         </p>
         <p>{operationResult.registerResult}</p>
       </div>

@@ -2,7 +2,11 @@ import { ArchitecturesForNumberParts } from "../enums/ArchitecturesForNumberPart
 import { OperationsValues } from "../enums/OperationsValues";
 import ArchitectureSize from "../types/ArchitectureSize";
 import NumParts from "../types/NumParts";
-import { Diagnostic, OperationResult } from "../types/OperationResult";
+import NumWithComplement from "../types/NumWithComplement";
+import OperationResults, {
+  Diagnostic,
+  OperationResult,
+} from "../types/OperationResult";
 
 export default class BinaryArithmetic {
   private architectureSize: ArchitectureSize | null = null;
@@ -10,20 +14,49 @@ export default class BinaryArithmetic {
 
   public architectureForNumberPart = Object.values(ArchitecturesForNumberParts);
 
+  public getComplementResult(num: string): OperationResult {
+    const inverseNumber = num
+      .split("")
+      .map((digit) => {
+        if (digit === "0") return "1";
+        else return "0";
+      })
+      .join("");
+
+    const oneMore = this.getNumPartsMagnitudeCorrection(
+      { num: { integerPart: "1", fractionalPart: null }, isComplement: false },
+      { total: num.length, integerPart: num.length, fractionalPart: 0 }
+    );
+    const numComplement = this.getAdditionResult(
+      inverseNumber,
+      oneMore.integerPart,
+      true
+    );
+
+    if (numComplement.id !== OperationsValues.ADD) throw new Error();
+
+    console.log(numComplement);
+
+    return { ...numComplement, isComplement: true };
+  }
+
   public getOperationResult(
     architecturalSizeInput: ArchitectureSize,
     operationSelector: OperationsValues,
-    num1PartsInput: NumParts,
-    num2PartsInput: NumParts
+    num1PartsInput: NumWithComplement,
+    num2PartsInput: NumWithComplement,
+    isThereSignalBit: boolean
   ) {
     this.architectureSize = architecturalSizeInput;
     const num1PartsCorrected = this.getNumPartsMagnitudeCorrection(
       num1PartsInput,
-      architecturalSizeInput
+      architecturalSizeInput,
+      isThereSignalBit
     );
     const num2PartsCorrected = this.getNumPartsMagnitudeCorrection(
       num2PartsInput,
-      architecturalSizeInput
+      architecturalSizeInput,
+      isThereSignalBit
     );
 
     const num1Full = num1PartsCorrected.fractionalPart
@@ -34,75 +67,105 @@ export default class BinaryArithmetic {
       ? num2PartsCorrected.integerPart + num2PartsCorrected.fractionalPart
       : num2PartsCorrected.integerPart;
 
-    let operationResult: OperationResult;
+    let operationResults: OperationResults;
 
     switch (operationSelector) {
       case OperationsValues.ADD:
-        operationResult = {
+        operationResults = {
           id: OperationsValues.ADD,
           signal: "+",
-          ...this.getAdditionResult(
-            num1Full,
-            num2Full,
-            architecturalSizeInput.total
-          ),
+          register1: num1Full,
+          register2: num2Full,
+          results: [
+            this.getAdditionResult(num1Full, num2Full, isThereSignalBit),
+          ],
         };
         break;
 
       case OperationsValues.SUB:
-        operationResult = {
+        operationResults = {
           id: OperationsValues.SUB,
-          num1: "",
-          num2: "",
-          registerResult: "",
-          visualResult: "",
-          diagnostic: "OK",
           signal: "-",
+          register1: num1Full,
+          register2: num2Full,
+          results: this.getSubtractionResults(num1Full, num2Full),
         };
         break;
 
       case OperationsValues.MUL:
-        operationResult = {
+        operationResults = {
           id: OperationsValues.MUL,
-          num1: "",
-          num2: "",
-          registerResult: "",
-          visualResult: "",
-          diagnostic: "OK",
           signal: "x",
+          register1: num1Full,
+          register2: num2Full,
+          results: [
+            {
+              id: OperationsValues.MUL,
+              registerResult: "",
+              visualResult: "",
+              diagnostic: "OK",
+              signal: "x",
+            },
+          ],
         };
         break;
 
       case OperationsValues.DIV:
-        operationResult = {
+        operationResults = {
           id: OperationsValues.DIV,
-          num1: "",
-          num2: "",
-          registerResult: "",
-          visualResult: "",
-          diagnostic: "OK",
           signal: "÷",
+
+          register1: num1Full,
+          register2: num2Full,
+          results: [
+            {
+              id: OperationsValues.DIV,
+              registerResult: "",
+              visualResult: "",
+              diagnostic: "OK",
+              signal: "÷",
+            },
+          ],
         };
         break;
 
       default:
         throw new Error("Invalid Operation Selector");
     }
-    return operationResult;
+    return operationResults;
   }
 
   private getNumPartsMagnitudeCorrection(
-    num: NumParts,
-    architecturalSize: ArchitectureSize
+    numInput: NumWithComplement,
+    architecturalSize: ArchitectureSize,
+    isThereSignalBit?: boolean
   ): NumParts {
+    const num = numInput.num as NumParts;
+    const isComplement = numInput.isComplement;
+
     let remainingZeros: number;
     if (num.integerPart.length < architecturalSize.integerPart) {
       remainingZeros = architecturalSize.integerPart - num.integerPart.length;
 
       num.integerPart = num.integerPart.padStart(
         num.integerPart.length + remainingZeros,
-        "0"
+        isComplement ? "1" : "0"
       );
+    }
+    if (isThereSignalBit) {
+      if (isComplement && num.integerPart[0] === "0") {
+        alert("Complemento do Número tem bit de maior magnitude 0");
+        throw new Error(
+          "Number Complement has the bit with the highest magnitude 0"
+        );
+      }
+
+      if (!isComplement && num.integerPart[0] === "1") {
+        alert("Número, sem ser complemento, tem bit de maior magnitude 1");
+        throw new Error(
+          "Number, without being complementary, has bit of greater magnitude 1"
+        );
+      }
     }
 
     if (
@@ -126,12 +189,12 @@ export default class BinaryArithmetic {
   private getAdditionResult(
     num1: string,
     num2: string,
-    architecturalSize: number
-  ) {
+    isThereSignalBit: boolean
+  ): OperationResult {
     const sums: string[] = [];
     const carriesArr: string[] = ["0"];
 
-    for (let i = architecturalSize - 1; i >= 0; i--) {
+    for (let i = num1.length - 1; i >= 0; i--) {
       const rightParcel = num1.at(i);
       const leftParcel = num2.at(i);
       let carry = carriesArr[0];
@@ -168,16 +231,29 @@ export default class BinaryArithmetic {
     const carries = carriesArr.join("");
 
     let diagnostic: Diagnostic = "OK";
-    if (Number(carriesArr[0])) diagnostic = "OVERFLOW";
+
+    if (isThereSignalBit) {
+      if (carriesArr[0] !== carriesArr[1]) diagnostic = "OVERFLOW";
+    } else if (Number(carriesArr[0])) diagnostic = "OVERFLOW";
 
     return {
-      num1,
-      num2,
+      id: OperationsValues.ADD,
+      signal: "+",
+      leftOperand: num1,
+      rightOperand: num2,
       registerResult,
       visualResult,
       carries,
       diagnostic,
+      isComplement: false,
     };
+  }
+
+  private getSubtractionResults(num1: string, num2: string): OperationResult[] {
+    const complementResult = this.getComplementResult(num2);
+    const num2Complement = complementResult.registerResult;
+    const additionResult = this.getAdditionResult(num1, num2Complement, true);
+    return [complementResult, additionResult];
   }
 
   private getVisualResult(registerResult: string) {

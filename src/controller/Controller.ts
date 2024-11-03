@@ -4,6 +4,7 @@ import { SectionValues } from "../enums/SectionValues";
 import BinaryArithmetic from "../models/BinaryArithmetic";
 import NumberingSystems from "../models/NumberingSystems";
 import ArchitectureSize from "../types/ArchitectureSize";
+import NumWithComplement from "../types/NumWithComplement";
 import { RenderData } from "../types/RenderData";
 
 export default class Controller {
@@ -66,29 +67,61 @@ export default class Controller {
   public renderBinArithView(
     architecturalSize: ArchitectureSize,
     operationSelector: OperationsValues,
-    num1Input: string,
-    num2Input: string
+    num1Input: NumWithComplement,
+    num2Input: NumWithComplement,
+    isThereSignalBit: boolean
   ) {
-    num1Input = this.checkNum(num1Input);
-    num2Input = this.checkNum(num2Input);
-    const num1PartsInput = this.getIntegerFractionalParts(
-      num1Input,
-      architecturalSize.fractionalPart ? true : false
-    );
-    const num2PartsInput = this.getIntegerFractionalParts(
-      num2Input,
-      architecturalSize.fractionalPart ? true : false
-    );
+    if (
+      !(typeof num1Input.num === "string") ||
+      !(typeof num2Input.num === "string")
+    )
+      throw new Error("The number is not a string");
 
-    const operationResult = this.binaryArithmetic.getOperationResult(
+    num1Input.num = this.checkNum(num1Input.num);
+    num2Input.num = this.checkNum(num2Input.num);
+
+    const num1PartsInput = {
+      num: this.getIntegerFractionalParts(
+        num1Input.num,
+        architecturalSize.fractionalPart ? true : false
+      ),
+      isComplement: num1Input.isComplement,
+    };
+    const num2PartsInput = {
+      num: this.getIntegerFractionalParts(
+        num2Input.num,
+        architecturalSize.fractionalPart ? true : false
+      ),
+      isComplement: num2Input.isComplement,
+    };
+
+    const operationResults = this.binaryArithmetic.getOperationResult(
       architecturalSize,
       operationSelector,
       num1PartsInput,
-      num2PartsInput
+      num2PartsInput,
+      isThereSignalBit
     );
 
+    const lastOperationResults =
+      operationResults.results[operationResults.results.length - 1];
+    let isComplementResult = false;
+
+    if (isThereSignalBit && lastOperationResults.visualResult[0] === "1") {
+      operationResults.results.push(
+        this.binaryArithmetic.getComplementResult(
+          lastOperationResults.visualResult
+        )
+      );
+      isComplementResult = true;
+    }
+
     const TFN = this.numberingSystem
-      .getNumberConvertedToKnownBases(2, operationResult.visualResult)
+      .getNumberConvertedToKnownBases(
+        2,
+        operationResults.results[operationResults.results.length - 1]
+          .visualResult
+      )
       .find((knownBase) => knownBase.id === NumberingSystemsMethods.TFN);
 
     if (!TFN) throw new Error("It was not possible to convert with TFN");
@@ -96,8 +129,10 @@ export default class Controller {
     this.setViewUpdate({
       id: SectionValues.BINARY_ARITHMETIC,
       architecturalSize,
-      operationResult,
+      operationResults,
+      isThereSignalBit,
       TFN,
+      isComplementResult,
     });
   }
 

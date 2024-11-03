@@ -1,5 +1,13 @@
 import { OperationsValues } from "../enums/OperationsValues";
 
+export default interface OperationResults {
+  id: OperationsValues;
+  signal: string;
+  register1: string;
+  register2: string;
+  results: OperationResult[];
+}
+
 export type OperationResult =
   | AdditionOperation
   | SubtractionOperation
@@ -10,8 +18,6 @@ export type Diagnostic = "OK" | "OVERFLOW" | "UNDERFLOW";
 
 interface IOperationResult {
   id: OperationsValues;
-  num1: string;
-  num2: string;
   registerResult: string;
   visualResult: string;
   diagnostic: Diagnostic;
@@ -22,6 +28,9 @@ interface AdditionOperation extends IOperationResult {
   id: OperationsValues.ADD;
   signal: "+";
   carries: string;
+  isComplement: boolean;
+  leftOperand: string;
+  rightOperand: string;
 }
 
 interface SubtractionOperation extends IOperationResult {

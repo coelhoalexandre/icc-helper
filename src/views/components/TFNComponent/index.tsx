@@ -12,7 +12,7 @@ export default function TFNComponent({ knownBase }: MethodsProps) {
           return (
             <>
               {" "}
-              <strong>
+              <strong key={index}>
                 {parcel.digit} x {parcel.base}
                 <sup>{parcel.exponent}</sup>
               </strong>{" "}

@@ -31,8 +31,10 @@ export const ControllerProvider = ({
           setViewElement(
             <BinaryArithmeticView
               architecturalSize={viewUpdate.architecturalSize}
-              operationResult={viewUpdate.operationResult}
+              operationResults={viewUpdate.operationResults}
+              isThereSignalBit={viewUpdate.isThereSignalBit}
               TFN={viewUpdate.TFN}
+              isComplementResult={viewUpdate.isComplementResult}
             />
           );
           break;
