@@ -1,13 +1,15 @@
 import styles from "./BinaryArithmeticView.module.css";
 import { OperationsValues } from "../../enums/OperationsValues";
-import OperationResults from "../../types/OperationResult";
+import OperationResults, { OperationResult } from "../../types/OperationResult";
 import ArchitectureSize from "../../types/ArchitectureSize";
 import { useBodyWidth } from "../../hooks/useWindowScreen";
 import { useLayoutEffect, useState } from "react";
-import AdditionComponent from "./AdditionComponents";
+import AdditionComponent from "./AdditionComponent";
 import TFN from "../../types/INumberingSystemsMethod/TFN";
 import TFNComponent from "../components/TFNComponent";
 import Calculations from "../../types/Calculations";
+import MultiplicationComponent from "./MultiplicationComponent";
+import { Register } from "../../types/Register";
 
 interface BinaryArithmeticViewProps {
   architecturalSize: ArchitectureSize;
@@ -26,7 +28,18 @@ export default function BinaryArithmeticView({
   const minMaxWidth = 235;
   const [maxWidth, setMaxWidth] = useState(minMaxWidth);
   const bodyWidth = useBodyWidth();
-  const firstOperationResult = operationResults.results[0];
+
+  let operationResult: OperationResult = operationResults.results[0];
+  switch (operationResults.id) {
+    case OperationsValues.SUB:
+      operationResult = operationResults.results[1];
+      break;
+    case OperationsValues.MUL:
+      operationResult = {
+        ...operationResults.results[operationResults.results.length - 1],
+        diagnostic: operationResults.results[0].diagnostic,
+      };
+  }
 
   useLayoutEffect(() => {
     const minWidth = 320;
@@ -34,45 +47,122 @@ export default function BinaryArithmeticView({
     else setMaxWidth(minMaxWidth + bodyWidth - minWidth);
   }, [bodyWidth]);
 
+  const getAdditionAction = (
+    index: number,
+    currentRegister: string,
+    registerValue: string,
+    isComplement: boolean,
+    isPartialProduct: boolean,
+    isFirstPartialProduct: boolean
+  ) => {
+    if (isComplement)
+      return (
+        <>
+          Complemento de{" "}
+          {operationResults.results[index - 1]
+            ? operationResults.results[index - 1].visualResult.replace(",", "")
+            : operationResults.register2}
+        </>
+      );
+
+    if (isPartialProduct)
+      if (isFirstPartialProduct) return <>R4 + R5</>;
+      else
+        return (
+          <>
+            R<sub>out</sub> + {currentRegister}
+          </>
+        );
+
+    return <>{registerValue}</>;
+  };
+
   const getCalculation = () => {
-    const register1 = { name: "R1", value: operationResults.register1 };
-    const register2 = { name: "R2", value: operationResults.register2 };
-    const register3 = {
+    const registers: Register[] = [
+      { name: "R1", value: operationResults.register1 },
+      { name: "R2", value: operationResults.register2 },
+    ];
+    registers.push({
       name: "R3",
-      value: `${register1.name} ${operationResults.signal} ${register2.name}`,
+      value: `${
+        operationResults.results[0].id === OperationsValues.MUL &&
+        operationResults.results[0].isReversed
+          ? `${registers[1].name} ${operationResults.signal} ${registers[0].name}`
+          : `${registers[0].name} ${operationResults.signal} ${registers[1].name}`
+      }`,
+    });
+    const registerOut = {
+      component: (
+        <>
+          R<sub>out</sub>
+        </>
+      ),
+      value: "",
     };
+    let isFirstPartialProduct: boolean;
+    let currentRegister: Register;
     const calculations: Calculations[] = operationResults.results.map(
       (operationResult, index) => {
         switch (operationResult.id) {
           case OperationsValues.ADD:
+            isFirstPartialProduct = operationResults.results[index - 1]
+              ? operationResults.results[index - 1].signal === "x"
+                ? true
+                : false
+              : false;
+            currentRegister = registers[2];
+            if (operationResult.isPartialProduct) {
+              registerOut.value = operationResult.registerResult;
+              currentRegister = registers[index + 3];
+            }
             return {
               component: (
                 <AdditionComponent
                   operationResult={operationResult}
+                  registers={registers}
                   isThereSignalBit={isThereSignalBit}
                   isComplement={operationResult.isComplement}
+                  isPartialProduct={operationResult.isPartialProduct}
+                  isFirstPartialProduct={isFirstPartialProduct}
+                  currentRegister={currentRegister}
                 />
               ),
-              action: `${
-                operationResult.isComplement
-                  ? `Complemento de ${
-                      operationResults.results[index - 1]
-                        ? operationResults.results[index - 1].registerResult
-                        : operationResults.register2
-                    }`
-                  : register3.value
-              }`,
+              action: getAdditionAction(
+                index,
+                currentRegister.name,
+                registers[2].value,
+                operationResult.isComplement,
+                operationResult.isPartialProduct,
+                isFirstPartialProduct
+              ),
             };
           case OperationsValues.SUB:
-            return { component: <></>, action: "" };
+            return { component: <></>, action: <></> };
           case OperationsValues.MUL:
-            return { component: <></>, action: "" };
+            registers.push(
+              ...operationResult.partialProducts.map(
+                (partialProduct, index): Register => ({
+                  name: `R${index + 4}`,
+                  value: partialProduct,
+                })
+              )
+            );
+            return {
+              component: (
+                <MultiplicationComponent
+                  operationResult={operationResult}
+                  registers={registers}
+                />
+              ),
+              action: <>{registers[2].value}</>,
+            };
           case OperationsValues.DIV:
-            return { component: <></>, action: "" };
+            return { component: <></>, action: <></> };
         }
       }
     );
 
+    const registersOfRegisters = registers.filter((_, index) => index < 3);
     return (
       <section
         className={styles.calculationSection}
@@ -81,15 +171,11 @@ export default function BinaryArithmeticView({
         <h3>Cálculo</h3>
         <div className={styles.calculationContainer}>
           <div className={styles.registers}>
-            <p>
-              <strong>{register1.name}:</strong> {register1.value}
-            </p>
-            <p>
-              <strong>{register2.name}:</strong> {register2.value}
-            </p>
-            <p>
-              <strong>{register3.name}:</strong> {register3.value}
-            </p>
+            {registersOfRegisters.map((register, index) => (
+              <p key={index}>
+                <strong>{register.name}:</strong> {register.value}
+              </p>
+            ))}
           </div>
           {calculations.map((calculation) => (
             <div className={styles.calculationWrapper}>
@@ -99,7 +185,7 @@ export default function BinaryArithmeticView({
           ))}
           <div className={styles.result}>
             <p>
-              Resultado: <strong>{firstOperationResult.visualResult}</strong>
+              Resultado: <strong>{operationResult.visualResult}</strong>
             </p>
             <div className={styles.TFN}>
               <p className={styles.title}>
@@ -141,10 +227,7 @@ export default function BinaryArithmeticView({
               <strong>Função:</strong> {operationResults.id}
             </p>
             <p>
-              <strong>Diagnostico:</strong>{" "}
-              {operationResults.id === OperationsValues.ADD
-                ? firstOperationResult.diagnostic
-                : operationResults.results[1].diagnostic}
+              <strong>Diagnostico:</strong> {operationResult.diagnostic}
             </p>
           </div>
         </div>

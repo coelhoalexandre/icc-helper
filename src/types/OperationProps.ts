@@ -1,7 +1,7 @@
 import { OperationResult } from "./OperationResult";
+import { Register } from "./Register";
 
 export default interface OperationProps {
   operationResult: OperationResult;
-  isThereSignalBit: boolean;
-  isComplement: boolean;
+  registers: Register[];
 }

@@ -110,7 +110,7 @@ export default class Controller {
     if (isThereSignalBit && lastOperationResults.visualResult[0] === "1") {
       operationResults.results.push(
         this.binaryArithmetic.getComplementResult(
-          lastOperationResults.visualResult
+          lastOperationResults.visualResult.replace(",", "")
         )
       );
       isComplementResult = true;

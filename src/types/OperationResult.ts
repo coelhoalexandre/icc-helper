@@ -29,6 +29,7 @@ interface AdditionOperation extends IOperationResult {
   signal: "+";
   carries: string;
   isComplement: boolean;
+  isPartialProduct: boolean;
   leftOperand: string;
   rightOperand: string;
 }
@@ -41,6 +42,8 @@ interface SubtractionOperation extends IOperationResult {
 interface MultiplicationOperation extends IOperationResult {
   id: OperationsValues.MUL;
   signal: "x";
+  partialProducts: string[];
+  isReversed: boolean;
 }
 
 interface DivisionOperation extends IOperationResult {

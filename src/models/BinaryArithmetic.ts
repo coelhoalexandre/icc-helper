@@ -35,8 +35,6 @@ export default class BinaryArithmetic {
 
     if (numComplement.id !== OperationsValues.ADD) throw new Error();
 
-    console.log(numComplement);
-
     return { ...numComplement, isComplement: true };
   }
 
@@ -98,15 +96,11 @@ export default class BinaryArithmetic {
           signal: "x",
           register1: num1Full,
           register2: num2Full,
-          results: [
-            {
-              id: OperationsValues.MUL,
-              registerResult: "",
-              visualResult: "",
-              diagnostic: "OK",
-              signal: "x",
-            },
-          ],
+          results: this.getMultiplicationResults(
+            num1Full,
+            num2Full,
+            isThereSignalBit
+          ),
         };
         break;
 
@@ -189,7 +183,8 @@ export default class BinaryArithmetic {
   private getAdditionResult(
     num1: string,
     num2: string,
-    isThereSignalBit: boolean
+    isThereSignalBit: boolean,
+    isPartialProduct: boolean = false
   ): OperationResult {
     const sums: string[] = [];
     const carriesArr: string[] = ["0"];
@@ -233,7 +228,9 @@ export default class BinaryArithmetic {
     let diagnostic: Diagnostic = "OK";
 
     if (isThereSignalBit) {
-      if (carriesArr[0] !== carriesArr[1]) diagnostic = "OVERFLOW";
+      if (carriesArr[0] !== carriesArr[1])
+        if (Number(registerResult)) diagnostic = "OVERFLOW";
+        else diagnostic = "UNDERFLOW";
     } else if (Number(carriesArr[0])) diagnostic = "OVERFLOW";
 
     return {
@@ -246,6 +243,7 @@ export default class BinaryArithmetic {
       carries,
       diagnostic,
       isComplement: false,
+      isPartialProduct,
     };
   }
 
@@ -254,6 +252,124 @@ export default class BinaryArithmetic {
     const num2Complement = complementResult.registerResult;
     const additionResult = this.getAdditionResult(num1, num2Complement, true);
     return [complementResult, additionResult];
+  }
+
+  private getMultiplicationResults(
+    num1: string,
+    num2: string,
+    isThereSignalBit: boolean
+  ) {
+    const num1Number = isThereSignalBit
+      ? num1[0] === "1"
+        ? Number(this.getComplementResult(num1).registerResult)
+        : Number(num1)
+      : Number(num1);
+    const num2Number = isThereSignalBit
+      ? num2[0] === "1"
+        ? Number(this.getComplementResult(num2).registerResult)
+        : Number(num2)
+      : Number(num2);
+
+    const num1SignificantBits = num1Number.toString().length;
+    const num2SignificantBits = num2Number.toString().length;
+    const isReversed = isThereSignalBit && num1[0] === "0" && num2[0] === "1";
+    const isDoubleNegative =
+      isThereSignalBit && num1[0] === "1" && num2[0] === "1";
+
+    let diagnostic: Diagnostic = "OK";
+    if (
+      this.architectureSize &&
+      this.architectureSize.total < num1SignificantBits + num2SignificantBits &&
+      !(num1Number === 1 || num2Number === 1)
+    )
+      diagnostic = "OVERFLOW";
+
+    if (isReversed) {
+      const temp = num1;
+      num1 = num2;
+      num2 = temp;
+    }
+
+    let partialProducts: string[] = [];
+
+    for (let i = num2.length - 1; i >= 0; i--) {
+      const digit = Number(num2[i]);
+      let res: string;
+      if (i == 0 && isDoubleNegative)
+        res = this.getComplementResult(num1).registerResult;
+      else if (digit) {
+        res = num1;
+      } else
+        res = num1
+          .split("")
+          .map(() => "0")
+          .join("");
+
+      const partialProduct = res.padEnd(num1.length + num2.length - 1 - i, "0");
+
+      partialProducts.push(partialProduct);
+    }
+
+    const lastPartialProductLength =
+      partialProducts[partialProducts.length - 1].length;
+
+    partialProducts = partialProducts.map((partialProduct) =>
+      partialProduct.padStart(
+        lastPartialProductLength,
+        partialProduct[0] === "0" ? "0" : "1"
+      )
+    );
+
+    const operationResults: OperationResult[] = [
+      {
+        id: OperationsValues.MUL,
+        signal: "x",
+        diagnostic,
+        partialProducts,
+        isReversed,
+        registerResult: partialProducts[0],
+        visualResult: this.getVisualResult(partialProducts[0]),
+      },
+    ];
+
+    if (partialProducts[1]) {
+      operationResults.push(
+        this.getAdditionResult(
+          partialProducts[0],
+          partialProducts[1],
+          isThereSignalBit,
+          true
+        )
+      );
+
+      for (let i = 2; i < partialProducts.length; i++) {
+        operationResults.push(
+          this.getAdditionResult(
+            operationResults[i - 1].registerResult,
+            partialProducts[i],
+            isThereSignalBit,
+            true
+          )
+        );
+      }
+
+      const lastRegisterResult =
+        operationResults[operationResults.length - 1].registerResult;
+      if (this.architectureSize) {
+        const excess = -(
+          this.architectureSize.total - lastRegisterResult.length
+        );
+
+        const lastVisualResult = this.getVisualResult(
+          lastRegisterResult.slice(excess)
+        );
+
+        operationResults[operationResults.length - 1].visualResult =
+          lastVisualResult;
+      }
+    }
+
+    return operationResults;
   }
 
   private getVisualResult(registerResult: string) {

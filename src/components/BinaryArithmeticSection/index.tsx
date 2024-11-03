@@ -302,12 +302,7 @@ export default function BinaryArithmeticSection() {
             <option
               key={operation}
               value={operation}
-              disabled={
-                operation === OperationsValues.ADD ||
-                operation === OperationsValues.SUB
-                  ? false
-                  : true
-              }
+              disabled={operation !== OperationsValues.DIV ? false : true}
             >
               {operation}
             </option>

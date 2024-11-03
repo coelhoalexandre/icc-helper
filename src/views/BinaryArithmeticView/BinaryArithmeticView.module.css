@@ -92,6 +92,7 @@
   flex-direction: column;
   justify-content: space-around;
   gap: 0.5rem;
+  max-height: 12rem;
   border: 1px solid var(--primary-color);
   border-radius: 4px;
   padding: 1rem;
@@ -103,8 +104,6 @@
 }
 
 .calculationSection .calculationWrapper {
-  display: flex;
-  flex-direction: column;
   border: 1px solid var(--primary-color);
   border-radius: 4px;
   padding: 1rem;
@@ -114,9 +113,13 @@
 .calculationSection .calculationWrapper .calculation {
   display: grid;
   grid-template-columns: auto 1fr;
-  grid-template-rows: repeat(4, auto);
   text-align: end;
   column-gap: 2rem;
+}
+
+.calculationSection .calculationWrapper .calculation > div {
+  display: grid;
+  grid-auto-rows: 1fr;
 }
 
 .calculationSection .calculationWrapper .calculation p {
