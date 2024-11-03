@@ -146,7 +146,12 @@ export default function BinaryArithmeticSection() {
 
     if (!(isNum1Complement || isNum2Complement))
       setIsThereSignalDisabled(false);
-  }, [isNum1Complement, isNum2Complement]);
+
+    if (operationSelector === OperationsValues.SUB) {
+      setIsThereSignalBit(true);
+      setIsThereSignalDisabled(true);
+    }
+  }, [isNum1Complement, isNum2Complement, operationSelector]);
 
   useLayoutEffect(() => {
     setIsPartQuantInputDisabled(true);
