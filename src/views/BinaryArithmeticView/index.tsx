@@ -56,7 +56,7 @@ export default function BinaryArithmeticView({
               action: `${
                 operationResult.isComplement
                   ? `Complemento de ${
-                      operationResults.id === OperationsValues.ADD
+                      operationResults.results[index - 1]
                         ? operationResults.results[index - 1].registerResult
                         : operationResults.register2
                     }`
@@ -141,7 +141,10 @@ export default function BinaryArithmeticView({
               <strong>Função:</strong> {operationResults.id}
             </p>
             <p>
-              <strong>Diagnostico:</strong> {firstOperationResult.diagnostic}
+              <strong>Diagnostico:</strong>{" "}
+              {operationResults.id === OperationsValues.ADD
+                ? firstOperationResult.diagnostic
+                : operationResults.results[1].diagnostic}
             </p>
           </div>
         </div>
