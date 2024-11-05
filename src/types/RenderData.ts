@@ -18,6 +18,6 @@ interface BinArithData {
   architecturalSize: ArchitectureSize;
   operationResults: OperationResults;
   isThereSignalBit: boolean;
-  TFN: TFN;
+  TFN: TFN | "NaN";
   isComplementResult: boolean;
 }

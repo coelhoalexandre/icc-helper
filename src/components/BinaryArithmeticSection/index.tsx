@@ -31,6 +31,13 @@ export default function BinaryArithmeticSection() {
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (
+      num1Input.replace(",", "").length > architecturalSizeInput ||
+      num2Input.replace(",", "").length > architecturalSizeInput
+    )
+      throw new Error(
+        "One of the numeric inputs has a number of bits greater than the architecture"
+      );
 
     if (num1Input.at(num1Input.length - 1) === ",") setNum1Input(num1Input + 0);
     if (num2Input.at(num2Input.length - 1) === ",") setNum2Input(num2Input + 0);
@@ -147,7 +154,10 @@ export default function BinaryArithmeticSection() {
     if (!(isNum1Complement || isNum2Complement))
       setIsThereSignalDisabled(false);
 
-    if (operationSelector === OperationsValues.SUB) {
+    if (
+      operationSelector === OperationsValues.SUB ||
+      operationSelector == OperationsValues.DIV
+    ) {
       setIsThereSignalBit(true);
       setIsThereSignalDisabled(true);
     }
@@ -299,11 +309,7 @@ export default function BinaryArithmeticSection() {
           }
         >
           {operations.map((operation) => (
-            <option
-              key={operation}
-              value={operation}
-              disabled={operation !== OperationsValues.DIV ? false : true}
-            >
+            <option key={operation} value={operation}>
               {operation}
             </option>
           ))}

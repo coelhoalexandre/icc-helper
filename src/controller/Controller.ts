@@ -104,25 +104,49 @@ export default class Controller {
     );
 
     const lastOperationResults =
-      operationResults.results[operationResults.results.length - 1];
-    let isComplementResult = false;
+      operationResults.id === OperationsValues.DIV
+        ? operationResults.results[0]
+        : operationResults.results[operationResults.results.length - 1];
 
-    if (isThereSignalBit && lastOperationResults.visualResult[0] === "1") {
+    let isComplementResult = false;
+    let visualResult = lastOperationResults.visualResult;
+
+    const commaPosition =
+      visualResult.indexOf(",") === -1 ? 0 : visualResult.indexOf(",");
+
+    if (isThereSignalBit && visualResult[0] === "1") {
       operationResults.results.push(
-        this.binaryArithmetic.getComplementResult(
-          lastOperationResults.visualResult.replace(",", "")
-        )
+        this.binaryArithmetic.getComplementResult(visualResult.replace(",", ""))
       );
       isComplementResult = true;
     }
 
-    const TFN = this.numberingSystem
-      .getNumberConvertedToKnownBases(
-        2,
-        operationResults.results[operationResults.results.length - 1]
-          .visualResult
-      )
-      .find((knownBase) => knownBase.id === NumberingSystemsMethods.TFN);
+    visualResult =
+      operationResults.id === OperationsValues.DIV && !isComplementResult
+        ? operationResults.results[0].visualResult
+        : operationResults.results[operationResults.results.length - 1]
+            .visualResult;
+
+    if (
+      operationResults.id === OperationsValues.MUL &&
+      isComplementResult &&
+      visualResult.includes(",")
+    ) {
+      visualResult = visualResult.replace(",", "");
+      const firstHalf = visualResult.slice(0, commaPosition);
+      const secondHalf = visualResult.slice(commaPosition);
+      visualResult = firstHalf + "," + secondHalf;
+    }
+
+    operationResults.results[operationResults.results.length - 1].visualResult =
+      visualResult;
+
+    const TFN =
+      operationResults.results[0].diagnostic !== "NaN"
+        ? this.numberingSystem
+            .getNumberConvertedToKnownBases(2, visualResult)
+            .find((knownBase) => knownBase.id === NumberingSystemsMethods.TFN)
+        : "NaN";
 
     if (!TFN) throw new Error("It was not possible to convert with TFN");
 

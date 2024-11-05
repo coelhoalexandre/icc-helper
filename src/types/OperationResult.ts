@@ -14,7 +14,7 @@ export type OperationResult =
   | MultiplicationOperation
   | DivisionOperation;
 
-export type Diagnostic = "OK" | "OVERFLOW" | "UNDERFLOW";
+export type Diagnostic = "OK" | "OVERFLOW" | "UNDERFLOW" | "NaN";
 
 interface IOperationResult {
   id: OperationsValues;
@@ -30,6 +30,7 @@ interface AdditionOperation extends IOperationResult {
   carries: string;
   isComplement: boolean;
   isPartialProduct: boolean;
+  isPartialRest: boolean;
   leftOperand: string;
   rightOperand: string;
 }
@@ -49,4 +50,8 @@ interface MultiplicationOperation extends IOperationResult {
 interface DivisionOperation extends IOperationResult {
   id: OperationsValues.DIV;
   signal: "÷";
+  nums: { num1: string; num2: string };
+  leftSide: { id: "subtraction" | "leftOperand"; value: string }[];
+  isNegativeResult: boolean;
+  complementsOf: string[];
 }

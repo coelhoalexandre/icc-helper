@@ -10,12 +10,13 @@ import TFNComponent from "../components/TFNComponent";
 import Calculations from "../../types/Calculations";
 import MultiplicationComponent from "./MultiplicationComponent";
 import { Register } from "../../types/Register";
+import DivisionComponent from "./DivisionComponent";
 
 interface BinaryArithmeticViewProps {
   architecturalSize: ArchitectureSize;
   operationResults: OperationResults;
   isThereSignalBit: boolean;
-  TFN: TFN;
+  TFN: TFN | "NaN";
   isComplementResult: boolean;
 }
 export default function BinaryArithmeticView({
@@ -25,6 +26,7 @@ export default function BinaryArithmeticView({
   TFN,
   isComplementResult,
 }: BinaryArithmeticViewProps) {
+  let partialRestIndex = 0;
   const minMaxWidth = 235;
   const [maxWidth, setMaxWidth] = useState(minMaxWidth);
   const bodyWidth = useBodyWidth();
@@ -53,14 +55,25 @@ export default function BinaryArithmeticView({
     registerValue: string,
     isComplement: boolean,
     isPartialProduct: boolean,
-    isFirstPartialProduct: boolean
+    isFirstPartialProduct: boolean,
+    isDivision: boolean
   ) => {
     if (isComplement)
       return (
         <>
           Complemento de{" "}
           {operationResults.results[index - 1]
-            ? operationResults.results[index - 1].visualResult.replace(",", "")
+            ? operationResults.results[0].id === OperationsValues.DIV
+              ? operationResults.results[0].complementsOf[index - 1]
+                ? operationResults.results[0].complementsOf[index - 1]
+                : operationResults.results[index - 1].visualResult.replace(
+                    ",",
+                    ""
+                  )
+              : operationResults.results[index - 1].visualResult.replace(
+                  ",",
+                  ""
+                )
             : operationResults.register2}
         </>
       );
@@ -74,6 +87,10 @@ export default function BinaryArithmeticView({
           </>
         );
 
+    if (isDivision) {
+      partialRestIndex++;
+      return <>Resto Parcial {partialRestIndex}</>;
+    }
     return <>{registerValue}</>;
   };
 
@@ -101,6 +118,8 @@ export default function BinaryArithmeticView({
     };
     let isFirstPartialProduct: boolean;
     let currentRegister: Register;
+    const isDivision =
+      operationResults.id === OperationsValues.DIV ? true : false;
     const calculations: Calculations[] = operationResults.results.map(
       (operationResult, index) => {
         switch (operationResult.id) {
@@ -124,6 +143,7 @@ export default function BinaryArithmeticView({
                   isComplement={operationResult.isComplement}
                   isPartialProduct={operationResult.isPartialProduct}
                   isFirstPartialProduct={isFirstPartialProduct}
+                  isPartialRest={operationResult.isPartialRest}
                   currentRegister={currentRegister}
                 />
               ),
@@ -133,7 +153,8 @@ export default function BinaryArithmeticView({
                 registers[2].value,
                 operationResult.isComplement,
                 operationResult.isPartialProduct,
-                isFirstPartialProduct
+                isFirstPartialProduct,
+                isDivision
               ),
             };
           case OperationsValues.SUB:
@@ -157,7 +178,12 @@ export default function BinaryArithmeticView({
               action: <>{registers[2].value}</>,
             };
           case OperationsValues.DIV:
-            return { component: <></>, action: <></> };
+            return {
+              component: (
+                <DivisionComponent operationResult={operationResult} />
+              ),
+              action: <>{registers[2].value}</>,
+            };
         }
       }
     );
@@ -177,28 +203,52 @@ export default function BinaryArithmeticView({
               </p>
             ))}
           </div>
-          {calculations.map((calculation) => (
+          {calculations.map((calculation, index) => (
             <div className={styles.calculationWrapper}>
               <h4>{calculation.action}:</h4>
-              <div className={styles.calculation}>{calculation.component}</div>
+              <div
+                className={`${styles.calculation} ${
+                  operationResults.id === OperationsValues.DIV && !index
+                    ? styles.divWrapper
+                    : ""
+                }`}
+              >
+                {calculation.component}
+              </div>
             </div>
           ))}
           <div className={styles.result}>
             <p>
-              Resultado: <strong>{operationResult.visualResult}</strong>
+              Resultado:{" "}
+              <strong>
+                {TFN !== "NaN" ? operationResult.visualResult : "NaN"}
+              </strong>
             </p>
-            <div className={styles.TFN}>
-              <p className={styles.title}>
-                <strong>
-                  TFN {isComplementResult ? "do Complemento" : ""}
-                </strong>
-              </p>
-              <TFNComponent knownBase={TFN} />
-            </div>
-            <p>
-              Representação em Decimal: {isComplementResult ? "-" : ""}
-              <strong>{TFN.convertedNumber}</strong>
-            </p>
+            {TFN !== "NaN" ? (
+              <>
+                <div className={styles.TFN}>
+                  <p className={styles.title}>
+                    <strong>
+                      TFN {isComplementResult ? "do Complemento" : ""}
+                    </strong>
+                  </p>
+                  <TFNComponent knownBase={TFN} />
+                </div>
+                <p>
+                  Representação em Decimal: {isComplementResult ? "-" : ""}
+                  <strong>
+                    {operationResults.results[0].id === OperationsValues.DIV
+                      ? operationResults.results[0].isNegativeResult
+                        ? "-"
+                        : ""
+                      : ""}
+                    {TFN.convertedNumber}
+                  </strong>
+                </p>
+              </>
+            ) : (
+              ""
+            )}
           </div>
         </div>
       </section>

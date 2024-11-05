@@ -126,6 +126,45 @@
   width: 100%;
 }
 
+.calculationSection .calculationWrapper .calculation.divWrapper {
+  display: flex;
+}
+
+.calculationSection .calculationWrapper .calculation.divWrapper > div {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.rests p.subtraction:first-child {
+  text-align: start;
+  margin-left: -0.5rem;
+}
+
+.rests .subtraction {
+  border-bottom: 1px solid var(--primary-color);
+}
+
+.rests p.leftOperand:first-child {
+  text-align: end;
+}
+
+.rests .leftOperand {
+  text-align: start;
+  font-weight: bold;
+}
+
+.calculationSection .calculationWrapper .calculation.divWrapper .divider {
+  border-left: 1px solid var(--primary-color);
+  border-bottom: 1px solid var(--primary-color);
+  border-radius: 0 0 0 3px;
+  padding: 0 0 0.2rem 0.2rem;
+}
+
+.calculationSection .calculationWrapper .calculation.divWrapper .divider p {
+  text-align: start;
+}
+
 .calculationSection .result {
   display: flex;
   flex-direction: column;

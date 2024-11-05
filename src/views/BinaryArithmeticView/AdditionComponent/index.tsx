@@ -8,6 +8,7 @@ interface AdditionComponentProps extends OperationProps {
   isComplement: boolean;
   isPartialProduct: boolean;
   isFirstPartialProduct: boolean;
+  isPartialRest: boolean;
   currentRegister: Register;
 }
 
@@ -18,6 +19,7 @@ export default function AdditionComponent({
   isComplement,
   isPartialProduct,
   isFirstPartialProduct,
+  isPartialRest,
   currentRegister,
 }: AdditionComponentProps) {
   if (operationResult.id !== OperationsValues.ADD)
@@ -33,7 +35,7 @@ export default function AdditionComponent({
         <p>
           <strong>Carries:</strong>
         </p>
-        {isComplement ? (
+        {isComplement || isPartialRest ? (
           ""
         ) : isFirstPartialProduct ? (
           registers.map((register, index) => (
