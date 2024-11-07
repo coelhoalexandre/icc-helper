@@ -4,7 +4,7 @@ import OperationResults, { OperationResult } from "../../types/OperationResult";
 import ArchitectureSize from "../../types/ArchitectureSize";
 import { useBodyWidth } from "../../hooks/useWindowScreen";
 import { useLayoutEffect, useState } from "react";
-import AdditionComponent from "./AdditionComponent";
+import AdditionComponent from "../components/AdditionComponent";
 import TFN from "../../types/INumberingSystemsMethod/TFN";
 import TFNComponent from "../components/TFNComponent";
 import Calculations from "../../types/Calculations";
@@ -16,7 +16,7 @@ interface BinaryArithmeticViewProps {
   architecturalSize: ArchitectureSize;
   operationResults: OperationResults;
   isThereSignalBit: boolean;
-  TFN: TFN | "NaN";
+  TFN: TFN | "NaN" | undefined;
   isComplementResult: boolean;
 }
 export default function BinaryArithmeticView({
@@ -224,7 +224,7 @@ export default function BinaryArithmeticView({
                 {TFN !== "NaN" ? operationResult.visualResult : "NaN"}
               </strong>
             </p>
-            {TFN !== "NaN" ? (
+            {TFN && TFN !== "NaN" ? (
               <>
                 <div className={styles.TFN}>
                   <p className={styles.title}>

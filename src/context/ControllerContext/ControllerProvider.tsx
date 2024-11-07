@@ -24,6 +24,9 @@ export const ControllerProvider = ({
               knownBases={viewUpdate.knownBases}
               numInput={viewUpdate.numInput}
               baseInput={viewUpdate.baseInput}
+              complementOperation={viewUpdate.complementOperation}
+              isNegative={viewUpdate.isNegative}
+              methodsDisplay={viewUpdate.methodsDisplay}
             />
           );
           break;

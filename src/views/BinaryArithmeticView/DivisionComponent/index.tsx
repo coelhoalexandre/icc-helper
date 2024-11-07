@@ -29,7 +29,7 @@ export default function DivisionComponent({
           <div className={styles.divider}>
             <p>{operationResult.nums.num2}</p>
           </div>
-          <p>{operationResult.visualResult}</p>
+          <p>{operationResult.registerResult}</p>
         </div>
       </div>
     </>

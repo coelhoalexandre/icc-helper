@@ -4,7 +4,10 @@ import { SectionValues } from "../enums/SectionValues";
 import BinaryArithmetic from "../models/BinaryArithmetic";
 import NumberingSystems from "../models/NumberingSystems";
 import ArchitectureSize from "../types/ArchitectureSize";
+import { MethodsDisplay } from "../types/INumberingSystemsMethod/MethodsDisplay";
+import TFN from "../types/INumberingSystemsMethod/TFN";
 import NumWithComplement from "../types/NumWithComplement";
+import { OperationResult } from "../types/OperationResult";
 import { RenderData } from "../types/RenderData";
 
 export default class Controller {
@@ -44,12 +47,36 @@ export default class Controller {
     return this.numberingSystem.getIntegerFractionalParts(num, isFractional);
   }
 
+  public getComplementResult(num: string, commaPosition?: number) {
+    return this.binaryArithmetic.getComplementResult(num, commaPosition);
+  }
+
+  public getMethodsUsed(base: number) {
+    return this.numberingSystem.getMethodsUsed(base);
+  }
+
   public renderNumSysView(
     baseInput: number,
     numInput: string,
-    maxDecimalPlaces: number | undefined
+    maxDecimalPlaces: number | undefined,
+    isNumComplement: boolean,
+    methodsDisplay: MethodsDisplay
   ) {
     numInput = this.checkNum(numInput);
+    const originalNumInput = numInput;
+    let isNegative = false;
+    let complementOperation: OperationResult | undefined;
+
+    if (isNumComplement && baseInput === 2) {
+      const commaPosition = numInput.indexOf(",");
+      complementOperation = this.getComplementResult(
+        numInput.replace(",", ""),
+        commaPosition
+      );
+      numInput = complementOperation.visualResult;
+    }
+
+    if (isNumComplement) isNegative = true;
     const knownBases = this.numberingSystem.getNumberConvertedToKnownBases(
       baseInput,
       numInput,
@@ -59,8 +86,11 @@ export default class Controller {
     this.render({
       id: SectionValues.NUMBERING_SYSTEM,
       knownBases,
-      numInput,
+      numInput: originalNumInput,
       baseInput,
+      complementOperation,
+      isNegative,
+      methodsDisplay,
     });
   }
 
@@ -69,13 +99,62 @@ export default class Controller {
     operationSelector: OperationsValues,
     num1Input: NumWithComplement,
     num2Input: NumWithComplement,
-    isThereSignalBit: boolean
+    isThereSignalBit: boolean,
+    numInputType: "inBin" | "inDecimal",
+    isDecimalResult: boolean
   ) {
     if (
       !(typeof num1Input.num === "string") ||
       !(typeof num2Input.num === "string")
     )
       throw new Error("The number is not a string");
+
+    if (numInputType === "inDecimal") {
+      const inDecimalOperationResults: OperationResult[] = [];
+      const num1InverseTFN = this.numberingSystem
+        .getNumberConvertedToKnownBases(
+          10,
+          num1Input.num,
+          architecturalSize.fractionalPart
+        )
+        .find(
+          (knownBase) => knownBase.id === NumberingSystemsMethods.INVERSE_TFN
+        );
+      const num2InverseTFN = this.numberingSystem
+        .getNumberConvertedToKnownBases(
+          10,
+          num2Input.num,
+          architecturalSize.fractionalPart
+        )
+        .find(
+          (knownBase) => knownBase.id === NumberingSystemsMethods.INVERSE_TFN
+        );
+      console.log(num1InverseTFN, num2InverseTFN);
+      if (!num1InverseTFN || !num2InverseTFN)
+        throw new Error("It was not possible to convert with Inverse TFN");
+
+      num1Input.num = num1InverseTFN.convertedNumber;
+      const num1CommaPosition = num1Input.num.indexOf(",");
+      if (num1Input.isComplement) {
+        const operationResult = this.getComplementResult(
+          num1Input.num.replace(",", ""),
+          num1CommaPosition
+        );
+        inDecimalOperationResults.push(operationResult);
+        num1Input.num = operationResult.visualResult;
+      }
+
+      num2Input.num = num2InverseTFN.convertedNumber;
+      const num2CommaPosition = num2Input.num.indexOf(",");
+      if (num2Input.isComplement) {
+        const operationResult = this.getComplementResult(
+          num2Input.num.replace(",", ""),
+          num2CommaPosition
+        );
+        inDecimalOperationResults.push(operationResult);
+        num2Input.num = operationResult.visualResult;
+      }
+    }
 
     num1Input.num = this.checkNum(num1Input.num);
     num2Input.num = this.checkNum(num2Input.num);
@@ -116,7 +195,7 @@ export default class Controller {
 
     if (isThereSignalBit && visualResult[0] === "1") {
       operationResults.results.push(
-        this.binaryArithmetic.getComplementResult(visualResult.replace(",", ""))
+        this.getComplementResult(visualResult.replace(",", ""))
       );
       isComplementResult = true;
     }
@@ -141,14 +220,17 @@ export default class Controller {
     operationResults.results[operationResults.results.length - 1].visualResult =
       visualResult;
 
-    const TFN =
-      operationResults.results[0].diagnostic !== "NaN"
-        ? this.numberingSystem
-            .getNumberConvertedToKnownBases(2, visualResult)
-            .find((knownBase) => knownBase.id === NumberingSystemsMethods.TFN)
-        : "NaN";
+    let TFN: TFN | "NaN" | undefined = undefined;
+    if (isDecimalResult) {
+      TFN =
+        operationResults.results[0].diagnostic !== "NaN"
+          ? this.numberingSystem
+              .getNumberConvertedToKnownBases(2, visualResult)
+              .find((knownBase) => knownBase.id === NumberingSystemsMethods.TFN)
+          : "NaN";
 
-    if (!TFN) throw new Error("It was not possible to convert with TFN");
+      if (!TFN) throw new Error("It was not possible to convert with TFN");
+    }
 
     this.setViewUpdate({
       id: SectionValues.BINARY_ARITHMETIC,

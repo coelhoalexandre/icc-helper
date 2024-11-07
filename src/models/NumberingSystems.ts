@@ -73,7 +73,7 @@ export default class NumberingSystems {
     return { integerPart, fractionalPart };
   }
 
-  getVerifiedNum = (num: string, includesCommaNumInput: boolean) => {
+  public getVerifiedNum = (num: string, includesCommaNumInput: boolean) => {
     const numInputUpperCase = num.toUpperCase();
 
     let verifiedNum = numInputUpperCase;
@@ -96,6 +96,44 @@ export default class NumberingSystems {
     return verifiedNum;
   };
 
+  public getMethodsUsed(base: number): NumberingSystemsMethods[] {
+    switch (base) {
+      case 2:
+        return [
+          NumberingSystemsMethods.TFN,
+          NumberingSystemsMethods.AGGREGATION,
+        ];
+      case 4:
+        return [
+          NumberingSystemsMethods.DISAGGREGATION,
+          NumberingSystemsMethods.TFN,
+          NumberingSystemsMethods.AGGREGATION,
+        ];
+      case 8:
+        return [
+          NumberingSystemsMethods.DISAGGREGATION,
+          NumberingSystemsMethods.TFN,
+          NumberingSystemsMethods.AGGREGATION,
+        ];
+      case 10:
+        return [
+          NumberingSystemsMethods.INVERSE_TFN,
+          NumberingSystemsMethods.AGGREGATION,
+        ];
+      case 16:
+        return [
+          NumberingSystemsMethods.DISAGGREGATION,
+          NumberingSystemsMethods.TFN,
+          NumberingSystemsMethods.AGGREGATION,
+        ];
+      default:
+        return [
+          NumberingSystemsMethods.TFN,
+          NumberingSystemsMethods.INVERSE_TFN,
+          NumberingSystemsMethods.AGGREGATION,
+        ];
+    }
+  }
   public getNumberConvertedToKnownBases(
     baseInput: number,
     numInput: string,

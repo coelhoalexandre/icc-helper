@@ -11,6 +11,7 @@ interface InputNumberProps {
   isComplement: boolean;
   setIsComplement: (value: React.SetStateAction<boolean>) => void;
   architectureSize: ArchitectureSize;
+  numInputType: "inBin" | "inDecimal";
 }
 
 export default function InputNumber({
@@ -21,6 +22,7 @@ export default function InputNumber({
   isComplement,
   setIsComplement,
   architectureSize,
+  numInputType,
 }: InputNumberProps) {
   const { controller } = useContext(ControllerContext);
   const [keyDown, setKeyDown] = useState("");
@@ -34,7 +36,7 @@ export default function InputNumber({
       includesCommaNumInput
     );
 
-    if (keyDown !== "Backspace") {
+    if (keyDown !== "Backspace" && numInputType === "inBin") {
       if (includesCommaNumInput && architectureSize.fractionalPart <= 0)
         throw new Error("There is no fractional part for this number");
 
@@ -64,7 +66,9 @@ export default function InputNumber({
           type="text"
           name={id}
           id="primeiroNum"
-          pattern={controller.getNumInputPattern(2)}
+          pattern={controller.getNumInputPattern(
+            numInputType === "inBin" ? 2 : 10
+          )}
           required
           value={num}
           onChange={(e) => checkNum(e.target.value)}

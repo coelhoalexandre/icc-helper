@@ -1,26 +1,26 @@
-import styles from "../BinaryArithmeticView.module.css";
+import styles from "../../BinaryArithmeticView/BinaryArithmeticView.module.css";
 import { OperationsValues } from "../../../enums/OperationsValues";
 import OperationProps from "../../../types/OperationProps";
 import { Register } from "../../../types/Register";
 
 interface AdditionComponentProps extends OperationProps {
-  isThereSignalBit: boolean;
-  isComplement: boolean;
-  isPartialProduct: boolean;
-  isFirstPartialProduct: boolean;
-  isPartialRest: boolean;
   currentRegister: Register;
+  isThereSignalBit: boolean;
+  isComplement?: boolean;
+  isPartialProduct?: boolean;
+  isFirstPartialProduct?: boolean;
+  isPartialRest?: boolean;
 }
 
 export default function AdditionComponent({
   operationResult,
   registers,
+  currentRegister,
   isThereSignalBit,
   isComplement,
   isPartialProduct,
   isFirstPartialProduct,
   isPartialRest,
-  currentRegister,
 }: AdditionComponentProps) {
   if (operationResult.id !== OperationsValues.ADD)
     throw new Error(

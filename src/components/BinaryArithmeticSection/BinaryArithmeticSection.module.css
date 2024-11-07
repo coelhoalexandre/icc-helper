@@ -17,6 +17,23 @@
   gap: 1rem;
 }
 
+.binaryArithmeticForm .containerNumInputType {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.binaryArithmeticForm .containerNumInputType .radioWrapper {
+  display: flex;
+  justify-content: space-around;
+  gap: 1.5rem;
+}
+
+.binaryArithmeticForm .containerNumInputType .radioWrapper .numInputType {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .binaryArithmeticForm fieldset {
   display: flex;
   justify-content: center;
@@ -24,6 +41,10 @@
   gap: 1rem;
   border: 1px solid var(--primary-color);
   padding: 1rem;
+}
+
+.binaryArithmeticForm fieldset legend {
+  padding-right: 10px;
 }
 
 .binaryArithmeticForm fieldset.fieldsetParts .wrapper {
@@ -56,6 +77,12 @@
   gap: 1rem;
 }
 
+.isDecimalResult {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 @media screen and (min-width: 390px) {
   .binaryArithmeticForm fieldset.fieldsetParts .wrapper {
     grid-template-rows: 1fr;
@@ -64,6 +91,10 @@
 }
 
 @media screen and (min-width: 482px) {
+  .binaryArithmeticForm .containerNumInputType {
+    flex-direction: row;
+  }
+
   .binaryArithmeticForm .container {
     grid-template-columns: 1fr auto;
   }

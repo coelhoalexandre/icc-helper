@@ -1,8 +1,17 @@
 .description {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-around;
   gap: 0.5rem;
   width: 100%;
+}
+
+.methodsList {
+  list-style: none;
+}
+
+.methodsList li {
+  padding-bottom: 2rem;
 }
 
 .method {
@@ -29,12 +38,25 @@
   font-size: 1.4rem;
 }
 
+.method sub {
+  font-size: 0.6em;
+}
+
 .aggregationSpan {
   margin-top: 1rem;
   margin-right: 5px;
   border-top: 1px solid var(--primary-color);
 }
 
+.complementOperation {
+  display: flex;
+  gap: 1rem;
+  margin: 0 auto;
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  padding: 1rem;
+  text-align: end;
+}
 @media screen and (min-width: 375px) {
   .method h3 {
     font-size: 1.6rem;

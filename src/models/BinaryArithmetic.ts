@@ -14,7 +14,10 @@ export default class BinaryArithmetic {
 
   public architectureForNumberPart = Object.values(ArchitecturesForNumberParts);
 
-  public getComplementResult(num: string): OperationResult {
+  public getComplementResult(
+    num: string,
+    commaPosition?: number
+  ): OperationResult {
     const inverseNumber = num
       .split("")
       .map((digit) => {
@@ -30,7 +33,10 @@ export default class BinaryArithmetic {
     const numComplement = this.getAdditionResult(
       inverseNumber,
       oneMore.integerPart,
-      true
+      true,
+      false,
+      false,
+      commaPosition
     );
 
     if (numComplement.id !== OperationsValues.ADD) throw new Error();
@@ -100,8 +106,7 @@ export default class BinaryArithmetic {
             num1PartsCorrected,
             num2PartsCorrected,
             num1Full,
-            num2Full,
-            isThereSignalBit
+            num2Full
           ),
         };
         break;
@@ -178,11 +183,11 @@ export default class BinaryArithmetic {
     num2: string,
     isThereSignalBit: boolean,
     isPartialProduct: boolean = false,
-    isPartialRest: boolean = false
+    isPartialRest: boolean = false,
+    commaPosition?: number
   ): OperationResult {
     const sums: string[] = [];
     const carriesArr: string[] = ["0"];
-
     for (let i = num1.length - 1; i >= 0; i--) {
       const rightParcel = num1.at(i);
       const leftParcel = num2.at(i);
@@ -216,7 +221,7 @@ export default class BinaryArithmetic {
     }
 
     const registerResult = sums.join("");
-    const visualResult = this.getVisualResult(registerResult);
+    const visualResult = this.getVisualResult(registerResult, commaPosition);
     const carries = carriesArr.join("");
 
     let diagnostic: Diagnostic = "OK";
@@ -263,43 +268,77 @@ export default class BinaryArithmetic {
     num1Parts: NumParts,
     num2Parts: NumParts,
     num1: string,
-    num2: string,
-    isThereSignalBit: boolean
+    num2: string
   ) {
-    const num1IntegerPartPositive = isThereSignalBit
-      ? num1Parts.integerPart[0] === "1"
-        ? this.getComplementResult(num1Parts.integerPart).registerResult
-        : num1Parts.integerPart
-      : num1Parts.integerPart;
-    const num1Number = Number(
-      num1Parts.fractionalPart
-        ? num1IntegerPartPositive + "." + num1Parts.fractionalPart
-        : num1IntegerPartPositive
-    );
-
-    const num2IntegerPartPositive = isThereSignalBit
-      ? num2Parts.integerPart[0] === "1"
-        ? this.getComplementResult(num2Parts.integerPart).registerResult
-        : num2Parts.integerPart
-      : num2Parts.integerPart;
-    const num2Number = Number(
-      num2Parts.fractionalPart
-        ? num2IntegerPartPositive + "." + num2Parts.fractionalPart
-        : num2IntegerPartPositive
-    );
-
-    const num1SignificantBits = num1Number.toString().replace(".", "").length;
-    const num2SignificantBits = num2Number.toString().replace(".", "").length;
-
-    const isReversed = isThereSignalBit && num1[0] === "0" && num2[0] === "1";
-    const isDoubleNegative =
-      isThereSignalBit && num1[0] === "1" && num2[0] === "1";
+    const isReversed = num1[0] === "0" && num2[0] === "1";
+    const isDoubleNegative = num1[0] === "1" && num2[0] === "1";
 
     let diagnostic: Diagnostic = "OK";
+    const num1IntegerPartPositive =
+      num1Parts.integerPart[0] === "1"
+        ? this.getComplementResult(num1Parts.integerPart).registerResult
+        : num1Parts.integerPart;
+    const num1PartsLength = {
+      integerPart:
+        Number(num1IntegerPartPositive) !== 0
+          ? Number(num1IntegerPartPositive).toString().length
+          : 0,
+      fractionalPart:
+        Number(
+          num1Parts.fractionalPart
+            ? num1Parts.fractionalPart.split("").reverse().join("")
+            : ""
+        ) !== 0
+          ? Number(
+              num1Parts.fractionalPart
+                ? num1Parts.fractionalPart.split("").reverse().join("")
+                : ""
+            ).toString().length
+          : 0,
+    };
+    const num2IntegerPartPositive =
+      num2Parts.integerPart[0] === "1"
+        ? this.getComplementResult(num2Parts.integerPart).registerResult
+        : num2Parts.integerPart;
+    const num2PartsLength = {
+      integerPart:
+        Number(num2IntegerPartPositive) !== 0
+          ? Number(num2IntegerPartPositive).toString().length
+          : 0,
+      fractionalPart:
+        Number(
+          num2Parts.fractionalPart
+            ? num2Parts.fractionalPart.split("").reverse().join("")
+            : ""
+        ) !== 0
+          ? Number(
+              num2Parts.fractionalPart
+                ? num2Parts.fractionalPart.split("").reverse().join("")
+                : ""
+            ).toString().length
+          : 0,
+    };
+
     if (
       this.architectureSize &&
-      this.architectureSize.total < num1SignificantBits + num2SignificantBits &&
-      !(num1Number === 1 || num2Number === 1)
+      (this.architectureSize.integerPart <=
+        num1PartsLength.integerPart + num2PartsLength.integerPart ||
+        (this.architectureSize.fractionalPart
+          ? this.architectureSize.fractionalPart <
+            num1PartsLength.fractionalPart + num2PartsLength.fractionalPart
+          : false)) &&
+      !(
+        Number(
+          num1IntegerPartPositive + num1Parts.fractionalPart
+            ? num1Parts.fractionalPart
+            : ""
+        ) === 1 ||
+        Number(
+          num2IntegerPartPositive + num2Parts.fractionalPart
+            ? num2Parts.fractionalPart
+            : ""
+        ) === 1
+      )
     )
       diagnostic = "OVERFLOW";
 
@@ -356,7 +395,7 @@ export default class BinaryArithmetic {
         this.getAdditionResult(
           partialProducts[0],
           partialProducts[1],
-          isThereSignalBit,
+          true,
           true
         )
       );
@@ -366,7 +405,7 @@ export default class BinaryArithmetic {
           this.getAdditionResult(
             operationResults[i - 1].registerResult,
             partialProducts[i],
-            isThereSignalBit,
+            true,
             true
           )
         );
@@ -381,29 +420,11 @@ export default class BinaryArithmetic {
           ? lastRegisterResult.slice(-(shifts * 2))
           : "";
 
-        // 1º Solução - Recortar
-        // const lastVisualResult = fractionalPart.length
-        //   ? integerPart.slice(-this.architectureSize.integerPart) +
-        //     "," +
-        //     fractionalPart.slice(0, this.architectureSize.fractionalPart)
-        //   : lastRegisterResult.slice(-this.architectureSize.integerPart);
-
-        // 2º Solução - Ignorar Tamanho e Passar os Bits Significativos (levando em conta sinal(se houver))
-        const numSignificantBits = fractionalPart.length
-          ? Number(integerPart + "." + fractionalPart)
-              .toString()
-              .replace(".", ",")
-          : Number(lastRegisterResult).toString();
-        const lastVisualResult = isThereSignalBit
-          ? integerPart[0] === "0"
-            ? "0" + numSignificantBits
-            : "1" + numSignificantBits
-          : numSignificantBits;
-
-        //3º Solução - Somente Ignorar Tamanho
-        // const lastVisualResult = fractionalPart.length
-        //   ? integerPart + "," + fractionalPart
-        //   : lastRegisterResult;
+        const lastVisualResult = fractionalPart.length
+          ? integerPart.slice(-this.architectureSize.integerPart) +
+            "," +
+            fractionalPart.slice(0, this.architectureSize.fractionalPart)
+          : lastRegisterResult.slice(-this.architectureSize.integerPart);
 
         operationResults[operationResults.length - 1].visualResult =
           lastVisualResult;
@@ -459,10 +480,12 @@ export default class BinaryArithmetic {
     const num2SignificantBits = "0" + Number(num2Positive).toString();
 
     let num1Modified = num1SignificantBits;
+    let isInteger = true;
 
     if (num1Modified.length < num2SignificantBits.length) {
       num1Modified = num1Modified.padEnd(num1Modified.length + 1, "0");
       quotients.push(...["0", ","]);
+      isInteger = false;
     }
 
     while (num1Modified.length < num2SignificantBits.length) {
@@ -482,14 +505,8 @@ export default class BinaryArithmetic {
       operationResults[0].complementsOf.push(num1SignificantBits);
     let wasItSubtraction = true;
     let doAlreadyGotComplement = false;
+    let fractionalPartLength = 0;
     do {
-      if (
-        quotients.join("").replace(",", "").length + 1 ===
-        this.architectureSize?.total
-      ) {
-        operationResults[0].diagnostic = "OVERFLOW";
-        break;
-      }
       if (
         Number(leftOperands[leftOperands.length - 1]) <
         Number(num2SignificantBits)
@@ -515,6 +532,7 @@ export default class BinaryArithmetic {
             quotients.push("0");
           wasItSubtraction = false;
         } else {
+          if (!this.architectureSize?.fractionalPart) break;
           const newLeftOperand = Number(
             leftOperands[leftOperands.length - 1] + "0"
           )
@@ -539,6 +557,7 @@ export default class BinaryArithmetic {
             quotients.push(...quotients[quotients.length - 1].split(""));
             quotients.shift();
           }
+          isInteger = false;
           wasItSubtraction = false;
         }
       } else {
@@ -565,6 +584,22 @@ export default class BinaryArithmetic {
         });
         wasItSubtraction = true;
       }
+
+      if (
+        isInteger &&
+        quotients.join("").length + 1 === this.architectureSize?.integerPart
+      ) {
+        operationResults[0].diagnostic = "OVERFLOW";
+        break;
+      }
+
+      if (
+        !isInteger &&
+        fractionalPartLength === this.architectureSize?.fractionalPart
+      )
+        break;
+
+      if (!isInteger) fractionalPartLength++;
     } while (
       Number(leftOperands[leftOperands.length - 1]) ||
       restLeftOperand.length
@@ -572,27 +607,28 @@ export default class BinaryArithmetic {
 
     if (quotients[quotients.length - 1] === ",") quotients.pop();
 
-    operationResults[0].visualResult = "0" + quotients.join("");
-    // if (isNegativeResult) {
-    //   const commaPosition = operationResults[0].visualResult.indexOf(",");
-    //   operationResults.push(
-    //     this.getComplementResult(
-    //       operationResults[0].visualResult.replace(",", "")
-    //     )
-    //   );
-    //   if (commaPosition !== -1) {
-    //     const integerPart = operationResults[
-    //       operationResults.length - 1
-    //     ].registerResult.slice(0, commaPosition);
-    //     const fractionalPart =
-    //       operationResults[operationResults.length - 1].registerResult.slice(
-    //         commaPosition
-    //       );
-    //     operationResults[0].visualResult = integerPart + fractionalPart;
-    //   }
-    //   operationResults[0].visualResult =
-    //     operationResults[operationResults.length - 1].registerResult;
-    // }
+    operationResults[0].registerResult = 0 + quotients.join("");
+
+    if (this.architectureSize) {
+      const quotientsString = quotients.join("");
+      const commaPosition =
+        quotientsString.indexOf(",") !== -1
+          ? quotientsString.indexOf(",")
+          : undefined;
+      const firstHalf = quotientsString
+        .slice(0, commaPosition)
+        .padStart(this.architectureSize.integerPart, "0");
+      const secondHalf = commaPosition
+        ? quotientsString
+            .replace(",", "")
+            .slice(commaPosition)
+            .padEnd(this.architectureSize.fractionalPart, "0")
+        : "";
+      operationResults[0].visualResult = secondHalf.length
+        ? firstHalf + "," + secondHalf
+        : firstHalf;
+    }
+
     if (operationResults[0].id === OperationsValues.DIV) {
       operationResults[0].leftSide = leftSide;
       operationResults[0].nums = {
@@ -602,13 +638,10 @@ export default class BinaryArithmetic {
       operationResults[0].isNegativeResult = isNegativeResult;
     }
 
-    if (!Number(quotients.join("").replace(",", ".")) && Number(num1))
-      operationResults[0].diagnostic = "UNDERFLOW";
-
     return operationResults;
   }
 
-  private getVisualResult(registerResult: string) {
+  private getVisualResult(registerResult: string, commaPosition?: number) {
     if (this.architectureSize) {
       const firstHalf = registerResult.slice(
         0,
@@ -618,6 +651,12 @@ export default class BinaryArithmetic {
         this.architectureSize.integerPart
       );
       return secondHalf ? firstHalf + "," + secondHalf : firstHalf;
+    }
+    if (commaPosition) {
+      if (commaPosition === -1) return registerResult;
+      const firstHalf = registerResult.slice(0, commaPosition);
+      const secondHalf = registerResult.slice(commaPosition);
+      return firstHalf + "," + secondHalf;
     }
     throw new Error("Architecture size not defined");
   }

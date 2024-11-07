@@ -28,6 +28,10 @@ export default function BinaryArithmeticSection() {
   const [num2Input, setNum2Input] = useState("");
   const [isNum1Complement, setIsNum1Complement] = useState(false);
   const [isNum2Complement, setIsNum2Complement] = useState(false);
+  const [numInputType, setNumInputType] = useState<"inBin" | "inDecimal">(
+    "inBin"
+  );
+  const [isDecimalResult, setIsDecimalResult] = useState(false);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -51,7 +55,9 @@ export default function BinaryArithmeticSection() {
       operationSelector,
       { num: num1Input, isComplement: isNum1Complement },
       { num: num2Input, isComplement: isNum2Complement },
-      isThereSignalBit
+      isThereSignalBit,
+      numInputType,
+      isDecimalResult
     );
   };
 
@@ -154,10 +160,7 @@ export default function BinaryArithmeticSection() {
     if (!(isNum1Complement || isNum2Complement))
       setIsThereSignalDisabled(false);
 
-    if (
-      operationSelector === OperationsValues.SUB ||
-      operationSelector == OperationsValues.DIV
-    ) {
+    if (operationSelector !== OperationsValues.ADD) {
       setIsThereSignalBit(true);
       setIsThereSignalDisabled(true);
     }
@@ -317,8 +320,39 @@ export default function BinaryArithmeticSection() {
 
         <fieldset>
           <legend>
-            Digite os números em binário, sem passar o tamanho da arquitetura.
+            Digite os números em binário, sem passar o tamanho da arquitetura:
           </legend>
+          <div className={styles.containerNumInputType}>
+            <p>Entrada de Números em: </p>
+            <div className={styles.radioWrapper}>
+              <div className={styles.numInputType}>
+                <input
+                  type="radio"
+                  name="numInputType"
+                  id="inBin"
+                  value="inBin"
+                  checked={numInputType === "inBin"}
+                  onChange={(event) =>
+                    setNumInputType(event.target.value as "inBin")
+                  }
+                />
+                <label htmlFor="inBin">Binário</label>
+              </div>
+              <div className={styles.numInputType}>
+                <input
+                  type="radio"
+                  name="numInputType"
+                  id="inDecimal"
+                  value="inDecimal"
+                  checked={numInputType === "inDecimal"}
+                  onChange={(event) =>
+                    setNumInputType(event.target.value as "inDecimal")
+                  }
+                />
+                <label htmlFor="inDecimal">Decimal</label>
+              </div>
+            </div>
+          </div>
           <InputNumber
             id="primeiroNum"
             architectureSize={{
@@ -330,6 +364,7 @@ export default function BinaryArithmeticSection() {
             setNum={setNum1Input}
             isComplement={isNum1Complement}
             setIsComplement={setIsNum1Complement}
+            numInputType={numInputType}
           >
             Primeiro Número:{" "}
           </InputNumber>
@@ -344,10 +379,23 @@ export default function BinaryArithmeticSection() {
             setNum={setNum2Input}
             isComplement={isNum2Complement}
             setIsComplement={setIsNum2Complement}
+            numInputType={numInputType}
           >
             Segundo Número:{" "}
           </InputNumber>
         </fieldset>
+        <div className={styles.isDecimalResult}>
+          <label htmlFor="isDecimalResult">
+            <strong>Representar em Decimal?</strong>
+          </label>
+          <input
+            type="checkbox"
+            name="isDecimalResult"
+            id="isDecimalResult"
+            checked={isDecimalResult}
+            onChange={(event) => setIsDecimalResult(event.target.checked)}
+          />
+        </div>
         <button type="submit">Calcular</button>
       </form>
     </>

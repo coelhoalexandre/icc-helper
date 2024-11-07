@@ -10,8 +10,8 @@ export default function DisaggregationComponent({ knownBase }: MethodsProps) {
   return (
     <>
       <p className="--marginTop">
-        {knownBase.digits.map((digit) => (
-          <span className={styles.aggregationSpan}>
+        {knownBase.digits.map((digit, index) => (
+          <span className={styles.aggregationSpan} key={index}>
             <strong>{digit}</strong>
           </span>
         ))}{" "}

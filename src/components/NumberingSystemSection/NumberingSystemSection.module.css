@@ -1,0 +1,58 @@
+.numContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+  gap: 2rem;
+}
+
+.numContainer .numWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.numContainer span {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.fieldset {
+  border: 1px solid var(--primary-color);
+  padding: 1rem;
+}
+
+.fieldset legend {
+  padding-right: 5px;
+}
+
+.fieldset .methodInput {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.fieldset .methodsContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  margin-left: 5px;
+}
+
+.isDisabled {
+  opacity: 0.6;
+}
+
+@media screen and (min-width: 375px) {
+  .fieldset .methodsContainer {
+    flex-direction: row;
+  }
+}
+
+@media screen and (min-width: 500px) {
+  .numContainer {
+    grid-template-columns: 1fr auto;
+  }
+}
