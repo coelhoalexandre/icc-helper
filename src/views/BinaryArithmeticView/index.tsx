@@ -74,7 +74,7 @@ export default function BinaryArithmeticView({
                   ",",
                   ""
                 )
-            : operationResults.register2}
+            : operationResults.registers[1]}
         </>
       );
 
@@ -95,12 +95,15 @@ export default function BinaryArithmeticView({
   };
 
   const getCalculation = () => {
-    const registers: Register[] = [
-      { name: "R1", value: operationResults.register1 },
-      { name: "R2", value: operationResults.register2 },
-    ];
+    const filteredRegisters = operationResults.registers.filter(
+      (register) => register !== null
+    );
+    const registers: Register[] = filteredRegisters.map((register, index) => ({
+      name: `R${index + 1}`,
+      value: register,
+    }));
     registers.push({
-      name: "R3",
+      name: `R${registers.length}`,
       value: `${
         operationResults.results[0].id === OperationsValues.MUL &&
         operationResults.results[0].isReversed

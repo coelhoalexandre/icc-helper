@@ -10,10 +10,10 @@ export default function InverseTFNComponent({ knownBase }: MethodsProps) {
   return (
     <div className={styles.inverseTFN}>
       <div className={styles.divisions}>
-        {knownBase.divisions.map((division) => {
+        {knownBase.divisions.map((division, index) => {
           return (
             <>
-              <p>
+              <p key={index}>
                 {division.dividend} / {division.divider} = {division.quotient} |
                 Resto: <strong>{division.rest}</strong>
               </p>
@@ -23,10 +23,10 @@ export default function InverseTFNComponent({ knownBase }: MethodsProps) {
       </div>
       {knownBase.multiplications.length ? (
         <div className={styles.multiplications}>
-          {knownBase.multiplications.map((multiplication) => {
+          {knownBase.multiplications.map((multiplication, index) => {
             return (
               <>
-                <p>
+                <p key={index}>
                   {multiplication.factorLeft} x {multiplication.factorRight} ={" "}
                   <strong>{multiplication.product.integerPart}</strong>,
                   {multiplication.product.fractionalPart}

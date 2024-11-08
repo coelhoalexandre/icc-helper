@@ -35,13 +35,13 @@ export default function NumberingSystemSection() {
         "A negative number in base 2 must have the bit with the highest magnitude 1"
       );
     if (numInput.at(numInput.length - 1) === ",") setNumInput(numInput + 0);
-    controller.renderNumSysView(
+    controller.renderNumSysView({
       baseInput,
       numInput,
       maxDecimalPlaces,
       isNumComplement,
-      methodsDisplay
-    );
+      methodsDisplay,
+    });
   };
 
   const onChangeAllMethods = (isChecked: boolean) => {

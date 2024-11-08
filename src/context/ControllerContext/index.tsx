@@ -1,8 +1,8 @@
 import { createContext } from "react";
-import Controller from "../../controller/Controller";
+import MainController from "../../controller/MainController";
 
 export const ControllerContext = createContext<{
-  controller: Controller;
+  controller: MainController;
   viewElement: JSX.Element | null;
-}>({ controller: new Controller(() => {}), viewElement: null });
+}>({ controller: new MainController(() => {}), viewElement: null });
 ControllerContext.displayName = "Controller Context";

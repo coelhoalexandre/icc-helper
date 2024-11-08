@@ -2,6 +2,7 @@ import { ArchitecturesForNumberParts } from "../enums/ArchitecturesForNumberPart
 import { OperationsValues } from "../enums/OperationsValues";
 import ArchitectureSize from "../types/ArchitectureSize";
 import NumParts from "../types/NumParts";
+import NumTwoParts from "../types/NumTwoParts";
 import NumWithComplement from "../types/NumWithComplement";
 import OperationResults, {
   Diagnostic,
@@ -34,6 +35,7 @@ export default class BinaryArithmetic {
       inverseNumber,
       oneMore.integerPart,
       true,
+      "",
       false,
       false,
       commaPosition
@@ -49,7 +51,9 @@ export default class BinaryArithmetic {
     operationSelector: OperationsValues,
     num1PartsInput: NumWithComplement,
     num2PartsInput: NumWithComplement,
-    isThereSignalBit: boolean
+    isThereSignalBit: boolean,
+    num1TwoParts?: NumTwoParts,
+    num2TwoParts?: NumTwoParts
   ) {
     this.architectureSize = architecturalSizeInput;
     const num1PartsCorrected = this.getNumPartsMagnitudeCorrection(
@@ -73,25 +77,34 @@ export default class BinaryArithmetic {
 
     let operationResults: OperationResults;
 
+    const num1 = num1TwoParts ? num1TwoParts.partTwo : num1Full;
+    const num2 = num2TwoParts ? num2TwoParts.partTwo : num2Full;
+    const num3 = num1TwoParts ? num1TwoParts.partOne : null;
+    const num4 = num2TwoParts ? num2TwoParts.partOne : null;
+    let operation: OperationResult;
+    let lastCarry = "0";
     switch (operationSelector) {
       case OperationsValues.ADD:
+        operation = this.getAdditionResult(num1, num2, isThereSignalBit);
+        if (operation.id === OperationsValues.ADD)
+          lastCarry = operation.carries[0];
         operationResults = {
           id: OperationsValues.ADD,
           signal: "+",
-          register1: num1Full,
-          register2: num2Full,
-          results: [
-            this.getAdditionResult(num1Full, num2Full, isThereSignalBit),
-          ],
+          registers: [num1, num4 ? num4 : num2, num3, num4],
+          results: [operation],
         };
+        if (num3 && num4)
+          operationResults.results.push(
+            this.getAdditionResult(num3, num4, isThereSignalBit, lastCarry)
+          );
         break;
 
       case OperationsValues.SUB:
         operationResults = {
           id: OperationsValues.SUB,
           signal: "-",
-          register1: num1Full,
-          register2: num2Full,
+          registers: [num1Full, num2Full, null, null],
           results: this.getSubtractionResults(num1Full, num2Full),
         };
         break;
@@ -100,8 +113,7 @@ export default class BinaryArithmetic {
         operationResults = {
           id: OperationsValues.MUL,
           signal: "x",
-          register1: num1Full,
-          register2: num2Full,
+          registers: [num1Full, num2Full, null, null],
           results: this.getMultiplicationResults(
             num1PartsCorrected,
             num2PartsCorrected,
@@ -115,8 +127,7 @@ export default class BinaryArithmetic {
         operationResults = {
           id: OperationsValues.DIV,
           signal: "÷",
-          register1: num1Full,
-          register2: num2Full,
+          registers: [num1Full, num2Full, null, null],
           results: this.getDivisionResults(num1Full, num2Full),
         };
         break;
@@ -182,44 +193,22 @@ export default class BinaryArithmetic {
     num1: string,
     num2: string,
     isThereSignalBit: boolean,
+    firstCarry?: string,
     isPartialProduct: boolean = false,
     isPartialRest: boolean = false,
     commaPosition?: number
   ): OperationResult {
     const sums: string[] = [];
-    const carriesArr: string[] = ["0"];
-    for (let i = num1.length - 1; i >= 0; i--) {
-      const rightParcel = num1.at(i);
-      const leftParcel = num2.at(i);
-      let carry = carriesArr[0];
-      if (!rightParcel || !leftParcel) throw new Error("Undefined Parcels");
+    const carriesArr: string[] = firstCarry
+      ? firstCarry.length
+        ? [firstCarry]
+        : ["0"]
+      : ["0"];
 
-      let sum = (
-        Number(rightParcel) +
-        Number(leftParcel) +
-        Number(carry)
-      ).toString();
+    for (let i = num1.length - 1; i >= 0; i--)
+      this.addUp(num1.at(i), num2.at(i), carriesArr, sums);
 
-      switch (sum) {
-        case "2":
-          sum = "0";
-          carry = "1";
-          break;
-
-        case "3":
-          sum = "1";
-          carry = "1";
-          break;
-
-        default:
-          carry = "0";
-          break;
-      }
-
-      sums.unshift(sum);
-      carriesArr.unshift(carry);
-    }
-
+    console.log(sums, carriesArr);
     const registerResult = sums.join("");
     const visualResult = this.getVisualResult(registerResult, commaPosition);
     const carries = carriesArr.join("");
@@ -247,6 +236,41 @@ export default class BinaryArithmetic {
     };
   }
 
+  private addUp(
+    rightParcel: string | undefined,
+    leftParcel: string | undefined,
+    carriesArr: string[],
+    sums: string[]
+  ) {
+    let carry = carriesArr[0];
+    if (!rightParcel || !leftParcel) throw new Error("Undefined Parcels");
+
+    let sum = (
+      Number(rightParcel) +
+      Number(leftParcel) +
+      Number(carry)
+    ).toString();
+
+    switch (sum) {
+      case "2":
+        sum = "0";
+        carry = "1";
+        break;
+
+      case "3":
+        sum = "1";
+        carry = "1";
+        break;
+
+      default:
+        carry = "0";
+        break;
+    }
+
+    sums.unshift(sum);
+    carriesArr.unshift(carry);
+  }
+
   private getSubtractionResults(
     num1: string,
     num2: string,
@@ -258,6 +282,7 @@ export default class BinaryArithmetic {
       num1,
       num2Complement,
       true,
+      "",
       false,
       isPartialRest
     );
@@ -396,6 +421,7 @@ export default class BinaryArithmetic {
           partialProducts[0],
           partialProducts[1],
           true,
+          "",
           true
         )
       );
@@ -406,6 +432,7 @@ export default class BinaryArithmetic {
             operationResults[i - 1].registerResult,
             partialProducts[i],
             true,
+            "",
             true
           )
         );
@@ -642,6 +669,12 @@ export default class BinaryArithmetic {
   }
 
   private getVisualResult(registerResult: string, commaPosition?: number) {
+    if (commaPosition) {
+      if (commaPosition === -1) return registerResult;
+      const firstHalf = registerResult.slice(0, commaPosition);
+      const secondHalf = registerResult.slice(commaPosition);
+      return firstHalf + "," + secondHalf;
+    }
     if (this.architectureSize) {
       const firstHalf = registerResult.slice(
         0,
@@ -651,12 +684,6 @@ export default class BinaryArithmetic {
         this.architectureSize.integerPart
       );
       return secondHalf ? firstHalf + "," + secondHalf : firstHalf;
-    }
-    if (commaPosition) {
-      if (commaPosition === -1) return registerResult;
-      const firstHalf = registerResult.slice(0, commaPosition);
-      const secondHalf = registerResult.slice(commaPosition);
-      return firstHalf + "," + secondHalf;
     }
     throw new Error("Architecture size not defined");
   }

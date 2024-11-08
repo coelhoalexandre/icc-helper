@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import Controller from "../../controller/Controller";
+import MainController from "../../controller/MainController";
 import NumberingSystemView from "../../views/NumberingSystemsView";
 import { ControllerContext } from ".";
 import { RenderData } from "../../types/RenderData";
@@ -12,7 +12,7 @@ export const ControllerProvider = ({
   children: React.ReactNode;
 }) => {
   const [viewUpdate, setViewUpdate] = useState<RenderData | null>(null);
-  const controller = useMemo(() => new Controller(setViewUpdate), []);
+  const controller = useMemo(() => new MainController(setViewUpdate), []);
   const [viewElement, setViewElement] = useState<JSX.Element | null>(null);
 
   useEffect(() => {

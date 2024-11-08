@@ -137,7 +137,6 @@ export default class NumberingSystems {
   public getNumberConvertedToKnownBases(
     baseInput: number,
     numInput: string,
-
     maxDecimalPlaces?: number
   ): KnownBases {
     let decimalNumber: TFN;
@@ -299,7 +298,7 @@ export default class NumberingSystems {
     };
 
     if (fractionalPart) {
-      if (!maxDecimalPlaces)
+      if (typeof maxDecimalPlaces === "undefined")
         throw new Error(
           "Maximum number of decimal places has not been defined"
         );
@@ -308,7 +307,7 @@ export default class NumberingSystems {
       let rest = Number(fractionalPart) / 10 ** fractionalPart.length;
 
       const factorRight = base;
-      do {
+      while (rest !== 0 && decimalPlaces < maxDecimalPlaces) {
         const factorLeft = rest;
         rest = factorLeft * factorRight;
         const integer = Math.trunc(rest);
@@ -326,7 +325,7 @@ export default class NumberingSystems {
           rest,
         });
         decimalPlaces++;
-      } while (rest !== 0 && decimalPlaces < maxDecimalPlaces);
+      }
 
       numParts.fractionalPart = multiplications
         .map((multiplication) => multiplication.integer.toString())

@@ -31,13 +31,15 @@ export default function BinaryArithmeticSection() {
   const [numInputType, setNumInputType] = useState<"inBin" | "inDecimal">(
     "inBin"
   );
+  const [isNumInputModified, setIsNumInputModified] = useState(false);
   const [isDecimalResult, setIsDecimalResult] = useState(false);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (
-      num1Input.replace(",", "").length > architecturalSizeInput ||
-      num2Input.replace(",", "").length > architecturalSizeInput
+      numInputType === "inBin" &&
+      (num1Input.replace(",", "").length > architecturalSizeInput ||
+        num2Input.replace(",", "").length > architecturalSizeInput)
     )
       throw new Error(
         "One of the numeric inputs has a number of bits greater than the architecture"
@@ -46,19 +48,20 @@ export default function BinaryArithmeticSection() {
     if (num1Input.at(num1Input.length - 1) === ",") setNum1Input(num1Input + 0);
     if (num2Input.at(num2Input.length - 1) === ",") setNum2Input(num2Input + 0);
 
-    controller.renderBinArithView(
-      {
+    controller.renderBinArithView({
+      architecturalSize: {
         total: architecturalSizeInput,
         integerPart: integerPartQuantInput,
         fractionalPart: fractionalPartQuantInput,
       },
       operationSelector,
-      { num: num1Input, isComplement: isNum1Complement },
-      { num: num2Input, isComplement: isNum2Complement },
+      num1Input: { num: num1Input, isComplement: isNum1Complement },
+      num2Input: { num: num2Input, isComplement: isNum2Complement },
       isThereSignalBit,
       numInputType,
-      isDecimalResult
-    );
+      isNumInputModified,
+      isDecimalResult,
+    });
   };
 
   const checkPartsQuant = (
@@ -384,17 +387,34 @@ export default function BinaryArithmeticSection() {
             Segundo Número:{" "}
           </InputNumber>
         </fieldset>
-        <div className={styles.isDecimalResult}>
-          <label htmlFor="isDecimalResult">
-            <strong>Representar em Decimal?</strong>
-          </label>
-          <input
-            type="checkbox"
-            name="isDecimalResult"
-            id="isDecimalResult"
-            checked={isDecimalResult}
-            onChange={(event) => setIsDecimalResult(event.target.checked)}
-          />
+        <div className={styles.containerDetailed}>
+          <div className={styles.inputWrapper}>
+            <label htmlFor="isNumInputModified">
+              <strong>
+                Aplicar Modificador{" "}
+                {fractionalPartQuantInput ? "Double" : "Long"}?
+              </strong>
+            </label>
+            <input
+              type="checkbox"
+              name="isNumInputModified"
+              id="isNumInputModified"
+              checked={isNumInputModified}
+              onChange={(event) => setIsNumInputModified(event.target.checked)}
+            />
+          </div>
+          <div className={styles.inputWrapper}>
+            <label htmlFor="isDecimalResult">
+              <strong>Representar em Decimal?</strong>
+            </label>
+            <input
+              type="checkbox"
+              name="isDecimalResult"
+              id="isDecimalResult"
+              checked={isDecimalResult}
+              onChange={(event) => setIsDecimalResult(event.target.checked)}
+            />
+          </div>
         </div>
         <button type="submit">Calcular</button>
       </form>

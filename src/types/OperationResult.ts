@@ -3,8 +3,7 @@ import { OperationsValues } from "../enums/OperationsValues";
 export default interface OperationResults {
   id: OperationsValues;
   signal: string;
-  register1: string;
-  register2: string;
+  registers: [string, string, string | null, string | null];
   results: OperationResult[];
 }
 
