@@ -35,6 +35,10 @@ export default class NumSysController {
     return this.numberingSystem.getMethodsUsed(base);
   }
 
+  public getNumWithComma(num: string, commaPosition: number): string {
+    return this.numberingSystem.getNumWithComma(num, commaPosition);
+  }
+
   public getNumberConvertedToKnownBases(
     base: number,
     num: string,

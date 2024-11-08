@@ -58,6 +58,10 @@ export default class MainController {
     );
   }
 
+  public getNumWithComma(num: string, commaPosition: number): string {
+    return this.numSysController.getNumWithComma(num, commaPosition);
+  }
+
   public getOperations(): OperationsValues[] {
     return this.binArithController.getOperations();
   }

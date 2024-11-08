@@ -4,6 +4,7 @@ import NumParts from "../NumParts";
 
 export default interface InverseTFN extends INumberingSystemsMethod {
   id: NumberingSystemsMethods.INVERSE_TFN;
+  originalNum: string;
   numParts: NumParts;
   divisions: Divisions[];
   multiplications: Multiplications[];

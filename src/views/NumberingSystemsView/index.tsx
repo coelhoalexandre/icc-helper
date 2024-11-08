@@ -1,24 +1,13 @@
 import styles from "./NumberingSystemsView.module.css";
 import { NumberingSystemsMethods } from "../../enums/NumberingSystemsMethods";
-import { KnownBases } from "../../types/KnownBases";
 import TFNComponent from "../components/TFNComponent";
-import InverseTFNComponent from "./InverseTFNComponent";
+import InverseTFNComponent from "../components/InverseTFNComponent";
 import AggregationComponent from "./AggregationComponent";
 import DisaggregationComponent from "./DisaggregationComponent";
-import { OperationResult } from "../../types/OperationResult";
 import AdditionComponent from "../components/AdditionComponent";
 import { useContext } from "react";
 import { ControllerContext } from "../../context/ControllerContext";
-import { MethodsDisplay } from "../../types/INumberingSystemsMethod/MethodsDisplay";
-
-interface NumberingSystemViewProps {
-  knownBases: KnownBases;
-  numInput: string;
-  baseInput: number;
-  complementOperation: OperationResult | undefined;
-  isNegative: boolean;
-  methodsDisplay: MethodsDisplay;
-}
+import { NumberingSystemViewProps } from "../../types/RenderData";
 
 export default function NumberingSystemView({
   knownBases,

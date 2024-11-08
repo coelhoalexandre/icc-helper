@@ -1,28 +1,22 @@
 import styles from "./BinaryArithmeticView.module.css";
 import { OperationsValues } from "../../enums/OperationsValues";
-import OperationResults, { OperationResult } from "../../types/OperationResult";
-import ArchitectureSize from "../../types/ArchitectureSize";
+import { OperationResult } from "../../types/OperationResult";
 import { useBodyWidth } from "../../hooks/useWindowScreen";
 import { useLayoutEffect, useState } from "react";
 import AdditionComponent from "../components/AdditionComponent";
-import TFN from "../../types/INumberingSystemsMethod/TFN";
 import TFNComponent from "../components/TFNComponent";
 import Calculations from "../../types/Calculations";
 import MultiplicationComponent from "./MultiplicationComponent";
 import { Register } from "../../types/Register";
 import DivisionComponent from "./DivisionComponent";
+import { BinaryArithmeticViewProps } from "../../types/RenderData";
+import InverseTFNComponent from "../components/InverseTFNComponent";
 
-interface BinaryArithmeticViewProps {
-  architecturalSize: ArchitectureSize;
-  operationResults: OperationResults;
-  isThereSignalBit: boolean;
-  TFN: TFN | "NaN" | undefined;
-  isComplementResult: boolean;
-}
 export default function BinaryArithmeticView({
   architecturalSize,
   operationResults,
   isThereSignalBit,
+  inverseTFNs: inverseTFNs,
   TFN,
   isComplementResult,
 }: BinaryArithmeticViewProps) {
@@ -199,7 +193,25 @@ export default function BinaryArithmeticView({
       >
         <h3>Cálculo</h3>
         <div className={styles.calculationContainer}>
-          <div className={styles.registers}>
+          {inverseTFNs.length
+            ? inverseTFNs.map((inverseTFN) => (
+                <div
+                  className={`${styles.containerInverseTFN} ${styles.borderWrapper}`}
+                >
+                  <InverseTFNComponent knownBase={inverseTFN} />
+                  <p>
+                    Número{" "}
+                    <strong>
+                      {inverseTFN.originalNum}
+                      <sub>10</sub>
+                    </strong>{" "}
+                    na base 2, respeitando a arquitetura, é{" "}
+                    <strong>{inverseTFN.convertedNumber}</strong>
+                  </p>
+                </div>
+              ))
+            : ""}
+          <div className={`${styles.registers} ${styles.borderWrapper}`}>
             {registersOfRegisters.map((register, index) => (
               <p key={index}>
                 <strong>{register.name}:</strong> {register.value}
@@ -207,7 +219,9 @@ export default function BinaryArithmeticView({
             ))}
           </div>
           {calculations.map((calculation, index) => (
-            <div className={styles.calculationWrapper}>
+            <div
+              className={`${styles.calculationWrapper} ${styles.borderWrapper}`}
+            >
               <h4>{calculation.action}:</h4>
               <div
                 className={`${styles.calculation} ${
@@ -220,7 +234,7 @@ export default function BinaryArithmeticView({
               </div>
             </div>
           ))}
-          <div className={styles.result}>
+          <div className={`${styles.result} ${styles.borderWrapper}`}>
             <p>
               Resultado:{" "}
               <strong>

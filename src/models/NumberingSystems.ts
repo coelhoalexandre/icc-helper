@@ -134,6 +134,14 @@ export default class NumberingSystems {
         ];
     }
   }
+
+  public getNumWithComma(num: string, commaPosition: number): string {
+    num = num.replace(",", "");
+    const firstHalf = num.slice(0, commaPosition);
+    const secondHalf = num.slice(commaPosition);
+    return firstHalf + "," + secondHalf;
+  }
+
   public getNumberConvertedToKnownBases(
     baseInput: number,
     numInput: string,
@@ -176,6 +184,7 @@ export default class NumberingSystems {
       case 10:
         binaryNumber = this.inverseTFN(
           2,
+          numInput,
           { integerPart, fractionalPart },
           maxDecimalPlaces
         );
@@ -198,6 +207,7 @@ export default class NumberingSystems {
         );
         binaryNumber = this.inverseTFN(
           2,
+          numInput,
           decimalNumber.numParts,
           maxDecimalPlaces
         );
@@ -267,6 +277,7 @@ export default class NumberingSystems {
 
   private inverseTFN(
     base: number,
+    originalNum: string,
     { integerPart, fractionalPart }: NumParts,
     maxDecimalPlaces?: number
   ): InverseTFN {
@@ -338,6 +349,7 @@ export default class NumberingSystems {
 
     return {
       id: NumberingSystemsMethods.INVERSE_TFN,
+      originalNum,
       targetBase: base,
       convertedNumber,
       numParts,

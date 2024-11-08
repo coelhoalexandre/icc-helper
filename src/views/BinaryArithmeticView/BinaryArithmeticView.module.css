@@ -87,15 +87,28 @@
   gap: 2rem;
 }
 
+.calculationSection .calculationContainer .borderWrapper {
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.calculationSection .calculationContainer .containerInverseTFN {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.calculationSection .calculationContainer .containerInverseTFN sub {
+  font-size: 0.6em;
+}
+
 .calculationSection .registers {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
   gap: 0.5rem;
   max-height: 12rem;
-  border: 1px solid var(--primary-color);
-  border-radius: 4px;
-  padding: 1rem;
   overflow-x: overlay;
 }
 
@@ -104,9 +117,6 @@
 }
 
 .calculationSection .calculationWrapper {
-  border: 1px solid var(--primary-color);
-  border-radius: 4px;
-  padding: 1rem;
   overflow-x: overlay;
 }
 
@@ -170,9 +180,6 @@
   flex-direction: column;
   gap: 1rem;
   max-height: fit-content;
-  border: 1px solid var(--primary-color);
-  border-radius: 4px;
-  padding: 1rem;
   overflow-x: overlay;
 }
 

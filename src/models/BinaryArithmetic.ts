@@ -8,6 +8,7 @@ import OperationResults, {
   Diagnostic,
   OperationResult,
 } from "../types/OperationResult";
+import getNumWithComma from "../utils/getNumWithComma";
 
 export default class BinaryArithmetic {
   private architectureSize: ArchitectureSize | null = null;
@@ -671,9 +672,7 @@ export default class BinaryArithmetic {
   private getVisualResult(registerResult: string, commaPosition?: number) {
     if (commaPosition) {
       if (commaPosition === -1) return registerResult;
-      const firstHalf = registerResult.slice(0, commaPosition);
-      const secondHalf = registerResult.slice(commaPosition);
-      return firstHalf + "," + secondHalf;
+      return getNumWithComma(registerResult, commaPosition);
     }
     if (this.architectureSize) {
       const firstHalf = registerResult.slice(

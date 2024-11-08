@@ -36,6 +36,7 @@ export const ControllerProvider = ({
               architecturalSize={viewUpdate.architecturalSize}
               operationResults={viewUpdate.operationResults}
               isThereSignalBit={viewUpdate.isThereSignalBit}
+              inverseTFNs={viewUpdate.inverseTFNs}
               TFN={viewUpdate.TFN}
               isComplementResult={viewUpdate.isComplementResult}
             />
