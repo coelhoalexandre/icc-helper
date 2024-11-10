@@ -4,6 +4,8 @@
 
   --background-color: #f9f9f9;
   --primary-color: #121212;
+  --error-color: #ff0000ee;
+  --success-color: #00ff40c0;
 
   --button-background: var(--background-color);
   --button-color: var(--primary-color);
@@ -87,6 +89,14 @@ select {
   font-size: inherit;
 }
 
+input[type="checkbox"] {
+  cursor: pointer;
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: auto !important;
+}
+
 .--marginTop {
   margin-top: 1.5rem;
 }
@@ -94,6 +104,28 @@ select {
 .--borderBottom {
   width: fit-content;
   border-bottom: 1px solid var(--primary-color);
+}
+
+.--error-msg {
+  color: var(--error-color);
+  font-size: 1.4rem;
+  margin-top: -0.5rem;
+}
+
+.--error-msg {
+  visibility: hidden;
+}
+
+[aria-invalid="true"] {
+  border-color: var(--error-color) !important;
+}
+
+[aria-invalid="true"] ~ .--error-msg {
+  visibility: visible;
+}
+
+[aria-invalid="false"] {
+  border-color: var(--success-color) !important;
 }
 
 @media screen and (min-width: 768px) {

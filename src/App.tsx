@@ -1,13 +1,18 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import styles from "./App.module.css";
 import NumberingSystemSection from "./components/NumberingSystemSection";
 import BinaryArithmeticSection from "./components/BinaryArithmeticSection";
 import { SectionValues } from "./enums/SectionValues";
 import ErrorSection from "./components/ErrorSection";
 import { ControllerContext } from "./context/ControllerContext";
+import { NumSysFormProvider } from "./context/NumSysFormContext/NumSysFormProvider";
+import { NumSysFormContext } from "./context/NumSysFormContext";
 
 function App() {
   const { viewElement } = useContext(ControllerContext);
+  const { submittedWithSuccess } = useContext(NumSysFormContext);
+  const sectionRef = useRef<HTMLElement | null>(null);
+
   const options = [
     {
       id: SectionValues.NUMBERING_SYSTEM,
@@ -26,13 +31,21 @@ function App() {
   const renderSection = () => {
     switch (currentSection) {
       case SectionValues.NUMBERING_SYSTEM:
-        return <NumberingSystemSection />;
+        return (
+          <NumSysFormProvider>
+            <NumberingSystemSection />
+          </NumSysFormProvider>
+        );
       case SectionValues.BINARY_ARITHMETIC:
         return <BinaryArithmeticSection />;
       default:
         return <ErrorSection currentSection={currentSection} />;
     }
   };
+
+  useEffect(() => {
+    if (submittedWithSuccess && sectionRef.current) sectionRef.current.focus();
+  }, [submittedWithSuccess]);
 
   return (
     <main className={styles.main}>
@@ -45,15 +58,24 @@ function App() {
             disabled={currentSection === option.id}
             key={option.id}
             onClick={() => setCurrentSection(option.id)}
+            aria-label={`Formulário de ${option.text}`}
           >
             {option.text}
           </button>
         ))}
       </div>
 
-      <section className={styles.section}>{renderSection()}</section>
+      <section className={styles.section} tabIndex={0}>
+        {renderSection()}
+      </section>
       {viewElement ? (
-        <section className={styles.section}>{viewElement}</section>
+        <section
+          className={styles.section}
+          ref={(section) => (sectionRef.current = section)}
+          tabIndex={0}
+        >
+          {viewElement}
+        </section>
       ) : (
         ""
       )}

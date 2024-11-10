@@ -1,0 +1,33 @@
+.fieldset {
+  border: 2px solid var(--primary-color);
+  padding: 1rem;
+}
+
+.fieldset legend {
+  padding-right: 5px;
+}
+
+.fieldset .methodInput {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.fieldset .methodsContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  margin-left: 5px;
+}
+
+.isDisabled {
+  opacity: 0.6;
+}
+
+@media screen and (min-width: 375px) {
+  .fieldset .methodsContainer {
+    flex-direction: row;
+  }
+}
