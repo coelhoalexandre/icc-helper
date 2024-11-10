@@ -1,4 +1,7 @@
-import OperationResults, { OperationResult } from "./OperationResult";
+import OperationResults, {
+  InDecimalOperationResult,
+  OperationResult,
+} from "./OperationResult";
 import { KnownBases } from "./KnownBases";
 import { SectionValues } from "../enums/SectionValues";
 import ArchitectureSize from "./ArchitectureSize";
@@ -20,8 +23,10 @@ export interface NumberingSystemViewProps {
 export interface BinaryArithmeticViewProps {
   architecturalSize: ArchitectureSize;
   operationResults: OperationResults;
+  isNumInputModified: boolean;
   isThereSignalBit: boolean;
   inverseTFNs: InverseTFN[];
+  inDecimalOperationResults: InDecimalOperationResult[];
   TFN: TFN | "NaN" | undefined;
   isComplementResult: boolean;
 }

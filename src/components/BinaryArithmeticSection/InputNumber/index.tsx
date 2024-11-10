@@ -12,6 +12,7 @@ interface InputNumberProps {
   setIsComplement: (value: React.SetStateAction<boolean>) => void;
   architectureSize: ArchitectureSize;
   numInputType: "inBin" | "inDecimal";
+  multiplier: number;
 }
 
 export default function InputNumber({
@@ -23,6 +24,7 @@ export default function InputNumber({
   setIsComplement,
   architectureSize,
   numInputType,
+  multiplier,
 }: InputNumberProps) {
   const { controller } = useContext(ControllerContext);
   const [keyDown, setKeyDown] = useState("");
@@ -42,14 +44,18 @@ export default function InputNumber({
 
       const numParts = controller.getIntegerFractionalParts(verifiedNum);
 
-      if (numParts.integerPart.length > architectureSize.integerPart)
+      if (
+        numParts.integerPart.length >
+        architectureSize.integerPart * multiplier
+      )
         throw new Error(
           "The integer part cannot be larger than the space reserved for it"
         );
 
       if (
         numParts.fractionalPart &&
-        numParts.fractionalPart.length > architectureSize.fractionalPart
+        numParts.fractionalPart.length >
+          architectureSize.fractionalPart * multiplier
       )
         throw new Error(
           "The fractional part cannot be larger than the space reserved for it"

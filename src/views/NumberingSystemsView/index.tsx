@@ -140,8 +140,8 @@ export default function NumberingSystemView({
         ""
       )}
       <ol className={styles.methodsList}>
-        {methods.map((method) => (
-          <li>{method}</li>
+        {methods.map((method, index) => (
+          <li key={index}>{method}</li>
         ))}
       </ol>
     </>

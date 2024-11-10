@@ -35,7 +35,9 @@ export const ControllerProvider = ({
             <BinaryArithmeticView
               architecturalSize={viewUpdate.architecturalSize}
               operationResults={viewUpdate.operationResults}
+              isNumInputModified={viewUpdate.isNumInputModified}
               isThereSignalBit={viewUpdate.isThereSignalBit}
+              inDecimalOperationResults={viewUpdate.inDecimalOperationResults}
               inverseTFNs={viewUpdate.inverseTFNs}
               TFN={viewUpdate.TFN}
               isComplementResult={viewUpdate.isComplementResult}

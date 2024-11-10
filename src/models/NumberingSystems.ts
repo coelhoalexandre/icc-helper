@@ -137,6 +137,8 @@ export default class NumberingSystems {
 
   public getNumWithComma(num: string, commaPosition: number): string {
     num = num.replace(",", "");
+    if (!commaPosition) return num;
+
     const firstHalf = num.slice(0, commaPosition);
     const secondHalf = num.slice(commaPosition);
     return firstHalf + "," + secondHalf;

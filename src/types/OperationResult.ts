@@ -15,6 +15,11 @@ export type OperationResult =
 
 export type Diagnostic = "OK" | "OVERFLOW" | "UNDERFLOW" | "NaN";
 
+export interface InDecimalOperationResult {
+  originalNum: string;
+  operation: OperationResult;
+}
+
 interface IOperationResult {
   id: OperationsValues;
   registerResult: string;

@@ -18,7 +18,9 @@ export default class BinaryArithmetic {
 
   public getComplementResult(
     num: string,
-    commaPosition?: number
+    commaPosition?: number,
+    isNumInputModified: boolean = false,
+    lastCarry?: string
   ): OperationResult {
     const inverseNumber = num
       .split("")
@@ -29,14 +31,20 @@ export default class BinaryArithmetic {
       .join("");
 
     const oneMore = this.getNumPartsMagnitudeCorrection(
-      { num: { integerPart: "1", fractionalPart: null }, isComplement: false },
+      {
+        num: {
+          integerPart: isNumInputModified ? "0" : "1",
+          fractionalPart: null,
+        },
+        isComplement: false,
+      },
       { total: num.length, integerPart: num.length, fractionalPart: 0 }
     );
     const numComplement = this.getAdditionResult(
       inverseNumber,
       oneMore.integerPart,
       true,
-      "",
+      lastCarry,
       false,
       false,
       commaPosition
@@ -60,12 +68,14 @@ export default class BinaryArithmetic {
     const num1PartsCorrected = this.getNumPartsMagnitudeCorrection(
       num1PartsInput,
       architecturalSizeInput,
-      isThereSignalBit
+      isThereSignalBit,
+      num1TwoParts ? true : false
     );
     const num2PartsCorrected = this.getNumPartsMagnitudeCorrection(
       num2PartsInput,
       architecturalSizeInput,
-      isThereSignalBit
+      isThereSignalBit,
+      num1TwoParts ? true : false
     );
 
     const num1Full = num1PartsCorrected.fractionalPart
@@ -78,36 +88,68 @@ export default class BinaryArithmetic {
 
     let operationResults: OperationResults;
 
-    const num1 = num1TwoParts ? num1TwoParts.partTwo : num1Full;
-    const num2 = num2TwoParts ? num2TwoParts.partTwo : num2Full;
-    const num3 = num1TwoParts ? num1TwoParts.partOne : null;
-    const num4 = num2TwoParts ? num2TwoParts.partOne : null;
-    let operation: OperationResult;
-    let lastCarry = "0";
+    const num1 = num1TwoParts ? num1TwoParts.partOne : null;
+    const num2 = num1TwoParts ? num1TwoParts.partTwo : num1Full;
+    const num3 = num2TwoParts ? num2TwoParts.partOne : null;
+    const num4 = num2TwoParts ? num2TwoParts.partTwo : num2Full;
+    let operations: OperationResult[];
+    let lastAdditionCarry = "0";
+    let lastComplementCarry = "0";
     switch (operationSelector) {
       case OperationsValues.ADD:
-        operation = this.getAdditionResult(num1, num2, isThereSignalBit);
-        if (operation.id === OperationsValues.ADD)
-          lastCarry = operation.carries[0];
+        operations = [this.getAdditionResult(num2, num4, isThereSignalBit)];
+        if (operations[0].id === OperationsValues.ADD)
+          lastAdditionCarry = operations[0].carries[0];
         operationResults = {
           id: OperationsValues.ADD,
           signal: "+",
-          registers: [num1, num4 ? num4 : num2, num3, num4],
-          results: [operation],
+          registers: [
+            num1 ? num1 : num2,
+            num1 ? num2 : num4,
+            num3,
+            num3 ? num4 : null,
+          ],
+          results: [...operations],
         };
-        if (num3 && num4)
+        if (num1 && num3)
           operationResults.results.push(
-            this.getAdditionResult(num3, num4, isThereSignalBit, lastCarry)
+            this.getAdditionResult(
+              num1,
+              num3,
+              isThereSignalBit,
+              lastAdditionCarry
+            )
           );
         break;
 
       case OperationsValues.SUB:
+        operations = this.getSubtractionResults(num2, num4);
+        if (operations[0].id === OperationsValues.ADD)
+          lastComplementCarry = operations[0].carries[0];
+        if (operations[1].id === OperationsValues.ADD)
+          lastAdditionCarry = operations[1].carries[0];
         operationResults = {
           id: OperationsValues.SUB,
           signal: "-",
-          registers: [num1Full, num2Full, null, null],
-          results: this.getSubtractionResults(num1Full, num2Full),
+          registers: [
+            num1 ? num1 : num2,
+            num1 ? num2 : num4,
+            num3,
+            num3 ? num4 : null,
+          ],
+          results: [...operations],
         };
+        if (num1 && num3)
+          operationResults.results.push(
+            ...this.getSubtractionResults(
+              num1,
+              num3,
+              false,
+              true,
+              lastComplementCarry,
+              lastAdditionCarry
+            )
+          );
         break;
 
       case OperationsValues.MUL:
@@ -142,7 +184,8 @@ export default class BinaryArithmetic {
   private getNumPartsMagnitudeCorrection(
     numInput: NumWithComplement,
     architecturalSize: ArchitectureSize,
-    isThereSignalBit?: boolean
+    isThereSignalBit?: boolean,
+    isNumInputModified?: boolean
   ): NumParts {
     const num = numInput.num as NumParts;
     const isComplement = numInput.isComplement;
@@ -156,7 +199,7 @@ export default class BinaryArithmetic {
         isComplement ? "1" : "0"
       );
     }
-    if (isThereSignalBit) {
+    if (isThereSignalBit && !isNumInputModified) {
       if (isComplement && num.integerPart[0] === "0") {
         alert("Complemento do Número tem bit de maior magnitude 0");
         throw new Error(
@@ -209,7 +252,6 @@ export default class BinaryArithmetic {
     for (let i = num1.length - 1; i >= 0; i--)
       this.addUp(num1.at(i), num2.at(i), carriesArr, sums);
 
-    console.log(sums, carriesArr);
     const registerResult = sums.join("");
     const visualResult = this.getVisualResult(registerResult, commaPosition);
     const carries = carriesArr.join("");
@@ -275,15 +317,23 @@ export default class BinaryArithmetic {
   private getSubtractionResults(
     num1: string,
     num2: string,
-    isPartialRest: boolean = false
+    isPartialRest: boolean = false,
+    isNumInputModified: boolean = false,
+    lastComplementCarry?: string,
+    lastAdditionCarry?: string
   ): OperationResult[] {
-    const complementResult = this.getComplementResult(num2);
+    const complementResult = this.getComplementResult(
+      num2,
+      undefined,
+      isNumInputModified,
+      lastComplementCarry
+    );
     const num2Complement = complementResult.registerResult;
     const additionResult = this.getAdditionResult(
       num1,
       num2Complement,
       true,
-      "",
+      lastAdditionCarry,
       false,
       isPartialRest
     );

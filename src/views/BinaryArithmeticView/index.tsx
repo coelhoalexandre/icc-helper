@@ -16,7 +16,9 @@ export default function BinaryArithmeticView({
   architecturalSize,
   operationResults,
   isThereSignalBit,
-  inverseTFNs: inverseTFNs,
+  isNumInputModified,
+  inverseTFNs,
+  inDecimalOperationResults,
   TFN,
   isComplementResult,
 }: BinaryArithmeticViewProps) {
@@ -27,14 +29,27 @@ export default function BinaryArithmeticView({
 
   let operationResult: OperationResult = operationResults.results[0];
   switch (operationResults.id) {
+    case OperationsValues.ADD:
+      if (isNumInputModified) {
+        operationResult.visualResult = operationResults.results[1].visualResult;
+        operationResult.diagnostic = operationResults.results[1].diagnostic;
+      }
+      break;
     case OperationsValues.SUB:
-      operationResult = operationResults.results[1];
+      if (isNumInputModified) operationResult = operationResults.results[3];
+      else operationResult = operationResults.results[1];
       break;
     case OperationsValues.MUL:
       operationResult = {
         ...operationResults.results[operationResults.results.length - 1],
         diagnostic: operationResults.results[0].diagnostic,
       };
+      if (isComplementResult)
+        operationResult.visualResult =
+          operationResults.results[
+            operationResults.results.length - 2
+          ].visualResult;
+      break;
   }
 
   useLayoutEffect(() => {
@@ -45,32 +60,47 @@ export default function BinaryArithmeticView({
 
   const getAdditionAction = (
     index: number,
-    currentRegister: string,
-    registerValue: string,
-    isComplement: boolean,
-    isPartialProduct: boolean,
-    isFirstPartialProduct: boolean,
-    isDivision: boolean
+    registers: Register[],
+    currentRegister?: string,
+    isComplement?: boolean,
+    isPartialProduct?: boolean,
+    isFirstPartialProduct?: boolean,
+    isNumInputModified?: boolean,
+    isDivision?: boolean
   ) => {
     if (isComplement)
-      return (
-        <>
-          Complemento de{" "}
-          {operationResults.results[index - 1]
-            ? operationResults.results[0].id === OperationsValues.DIV
-              ? operationResults.results[0].complementsOf[index - 1]
+      if (isNumInputModified)
+        return (
+          <>Complemento de {!index ? registers[3].value : registers[2].value}</>
+        );
+      else
+        return (
+          <>
+            Complemento de{" "}
+            {operationResults.results[index - 1]
+              ? operationResults.results[0].id === OperationsValues.DIV
                 ? operationResults.results[0].complementsOf[index - 1]
+                  ? operationResults.results[0].complementsOf[index - 1]
+                  : operationResults.results[index - 1].visualResult.replace(
+                      ",",
+                      ""
+                    )
                 : operationResults.results[index - 1].visualResult.replace(
                     ",",
                     ""
                   )
-              : operationResults.results[index - 1].visualResult.replace(
-                  ",",
-                  ""
-                )
-            : operationResults.registers[1]}
-        </>
-      );
+              : operationResults.registers[1]}
+          </>
+        );
+
+    if (isNumInputModified) {
+      if (
+        !index ||
+        (operationResults.id === OperationsValues.SUB && index === 1)
+      )
+        return <>{registers[4].value}</>;
+      else return <>{registers[5].value}</>;
+    }
 
     if (isPartialProduct)
       if (isFirstPartialProduct) return <>R4 + R5</>;
@@ -85,26 +115,47 @@ export default function BinaryArithmeticView({
       partialRestIndex++;
       return <>Resto Parcial {partialRestIndex}</>;
     }
-    return <>{registerValue}</>;
+    return <>{registers[2].value}</>;
   };
 
   const getCalculation = () => {
     const filteredRegisters = operationResults.registers.filter(
       (register) => register !== null
     );
+
     const registers: Register[] = filteredRegisters.map((register, index) => ({
       name: `R${index + 1}`,
       value: register,
     }));
-    registers.push({
-      name: `R${registers.length}`,
-      value: `${
-        operationResults.results[0].id === OperationsValues.MUL &&
-        operationResults.results[0].isReversed
-          ? `${registers[1].name} ${operationResults.signal} ${registers[0].name}`
-          : `${registers[0].name} ${operationResults.signal} ${registers[1].name}`
-      }`,
-    });
+    if (isNumInputModified)
+      registers.push(
+        ...[
+          {
+            name: `R${registers.length + 1}`,
+            value: `${registers[1].name} ${operationResults.signal} ${registers[3].name}`,
+          },
+          {
+            name: `R${registers.length + 2}`,
+            value: `${registers[0].name} ${operationResults.signal} ${registers[2].name}`,
+          },
+          {
+            name: `Res`,
+            value: `R${registers.length + 2} "${operationResults.signal}" R${
+              registers.length + 1
+            }`,
+          },
+        ]
+      );
+    else
+      registers.push({
+        name: `R${registers.length + 1}`,
+        value: `${
+          operationResults.results[0].id === OperationsValues.MUL &&
+          operationResults.results[0].isReversed
+            ? `${registers[1].name} ${operationResults.signal} ${registers[0].name}`
+            : `${registers[0].name} ${operationResults.signal} ${registers[1].name}`
+        }`,
+      });
     const registerOut = {
       component: (
         <>
@@ -137,20 +188,23 @@ export default function BinaryArithmeticView({
                   operationResult={operationResult}
                   registers={registers}
                   isThereSignalBit={isThereSignalBit}
+                  isNumInputModified={isNumInputModified}
                   isComplement={operationResult.isComplement}
                   isPartialProduct={operationResult.isPartialProduct}
                   isFirstPartialProduct={isFirstPartialProduct}
                   isPartialRest={operationResult.isPartialRest}
                   currentRegister={currentRegister}
+                  index={index}
                 />
               ),
               action: getAdditionAction(
                 index,
+                registers,
                 currentRegister.name,
-                registers[2].value,
                 operationResult.isComplement,
                 operationResult.isPartialProduct,
                 isFirstPartialProduct,
+                isNumInputModified,
                 isDivision
               ),
             };
@@ -184,8 +238,10 @@ export default function BinaryArithmeticView({
         }
       }
     );
-
-    const registersOfRegisters = registers.filter((_, index) => index < 3);
+    const registersLimit = isNumInputModified ? 7 : 3;
+    const registersOfRegisters = registers.filter(
+      (_, index) => index < registersLimit
+    );
     return (
       <section
         className={styles.calculationSection}
@@ -211,7 +267,36 @@ export default function BinaryArithmeticView({
                 </div>
               ))
             : ""}
-          <div className={`${styles.registers} ${styles.borderWrapper}`}>
+          {inDecimalOperationResults.length
+            ? inDecimalOperationResults.map((inDecimalOperationResult) => (
+                <div
+                  className={`${styles.calculationWrapper} ${styles.borderWrapper}`}
+                >
+                  <p>
+                    <strong>
+                      Complemento de {inDecimalOperationResult.originalNum}
+                    </strong>
+                  </p>
+                  <div className={styles.calculation}>
+                    <AdditionComponent
+                      operationResult={inDecimalOperationResult.operation}
+                      isThereSignalBit={isThereSignalBit}
+                      registers={registers}
+                      currentRegister={registers[0]}
+                      isComplement
+                    />
+                  </div>
+                </div>
+              ))
+            : ""}
+          <div
+            className={`${styles.registers} ${styles.borderWrapper}`}
+            style={
+              isNumInputModified
+                ? { maxHeight: "25rem" }
+                : { maxHeight: "12rem" }
+            }
+          >
             {registersOfRegisters.map((register, index) => (
               <p key={index}>
                 <strong>{register.name}:</strong> {register.value}

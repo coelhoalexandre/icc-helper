@@ -33,13 +33,24 @@ export default function BinaryArithmeticSection() {
   );
   const [isNumInputModified, setIsNumInputModified] = useState(false);
   const [isDecimalResult, setIsDecimalResult] = useState(false);
-
+  const multiplier = isNumInputModified ? 2 : 1;
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (
+      isNumInputModified &&
+      (operationSelector === OperationsValues.MUL ||
+        operationSelector === OperationsValues.DIV)
+    )
+      throw new Error(
+        `The selected operation selector (${operationSelector}) is disabled because of the input modifier.`
+      );
+
     if (
       numInputType === "inBin" &&
-      (num1Input.replace(",", "").length > architecturalSizeInput ||
-        num2Input.replace(",", "").length > architecturalSizeInput)
+      (num1Input.replace(",", "").length >
+        architecturalSizeInput * multiplier ||
+        num2Input.replace(",", "").length > architecturalSizeInput * multiplier)
     )
       throw new Error(
         "One of the numeric inputs has a number of bits greater than the architecture"
@@ -315,7 +326,17 @@ export default function BinaryArithmeticSection() {
           }
         >
           {operations.map((operation) => (
-            <option key={operation} value={operation}>
+            <option
+              key={operation}
+              value={operation}
+              disabled={
+                isNumInputModified &&
+                (operation === OperationsValues.MUL ||
+                  operation === OperationsValues.DIV)
+                  ? true
+                  : false
+              }
+            >
               {operation}
             </option>
           ))}
@@ -368,6 +389,7 @@ export default function BinaryArithmeticSection() {
             isComplement={isNum1Complement}
             setIsComplement={setIsNum1Complement}
             numInputType={numInputType}
+            multiplier={multiplier}
           >
             Primeiro Número:{" "}
           </InputNumber>
@@ -383,6 +405,7 @@ export default function BinaryArithmeticSection() {
             isComplement={isNum2Complement}
             setIsComplement={setIsNum2Complement}
             numInputType={numInputType}
+            multiplier={multiplier}
           >
             Segundo Número:{" "}
           </InputNumber>

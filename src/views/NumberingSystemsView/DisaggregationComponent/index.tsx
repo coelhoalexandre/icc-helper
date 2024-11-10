@@ -16,8 +16,8 @@ export default function DisaggregationComponent({ knownBase }: MethodsProps) {
           </span>
         ))}{" "}
         ={" "}
-        {knownBase.disaggregations.map((disaggretion) => (
-          <span className={styles.aggregationSpan}>
+        {knownBase.disaggregations.map((disaggretion, index) => (
+          <span className={styles.aggregationSpan} key={index}>
             <strong>{disaggretion}</strong>
           </span>
         ))}

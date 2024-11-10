@@ -4,8 +4,10 @@ import OperationProps from "../../../types/OperationProps";
 import { Register } from "../../../types/Register";
 
 interface AdditionComponentProps extends OperationProps {
-  currentRegister: Register;
   isThereSignalBit: boolean;
+  currentRegister: Register;
+  isNumInputModified?: boolean;
+  index?: number;
   isComplement?: boolean;
   isPartialProduct?: boolean;
   isFirstPartialProduct?: boolean;
@@ -17,6 +19,8 @@ export default function AdditionComponent({
   registers,
   currentRegister,
   isThereSignalBit,
+  isNumInputModified,
+  index,
   isComplement,
   isPartialProduct,
   isFirstPartialProduct,
@@ -29,21 +33,27 @@ export default function AdditionComponent({
   if (isPartialProduct)
     registers = registers.filter((_, index) => index > 2 && index < 5);
 
-  return (
-    <>
-      <div>
-        <p>
-          <strong>Carries:</strong>
-        </p>
-        {isComplement || isPartialRest ? (
-          ""
-        ) : isFirstPartialProduct ? (
-          registers.map((register, index) => (
-            <p key={index}>
-              <strong>{register.name}:</strong>
+  const getLeftSide = () => {
+    if (isComplement || isPartialRest) return "";
+
+    if (isPartialProduct)
+      if (isFirstPartialProduct)
+        return (
+          <>
+            {registers.map((register, index) => (
+              <p key={index}>
+                <strong>{register.name}:</strong>
+              </p>
+            ))}{" "}
+            <p>
+              <strong>
+                R<sub>out</sub>:
+              </strong>
             </p>
-          ))
-        ) : (
+          </>
+        );
+      else
+        return (
           <>
             <p>
               <strong>
@@ -54,16 +64,53 @@ export default function AdditionComponent({
               <strong>{currentRegister.name}:</strong>
             </p>
           </>
-        )}
-        {isPartialProduct ? (
-          <p>
-            <strong>
-              R<sub>out</sub>:
-            </strong>
-          </p>
-        ) : (
-          ""
-        )}
+        );
+
+    if (isNumInputModified) {
+      if (!index)
+        return (
+          <>
+            <p>
+              <strong>{registers[1].name}:</strong>
+            </p>
+            <p>
+              <strong>{registers[3].name}:</strong>
+            </p>
+            <p>
+              <strong>{registers[4].name}:</strong>
+            </p>
+          </>
+        );
+      else
+        return (
+          <>
+            <p>
+              <strong>{registers[0].name}:</strong>
+            </p>
+            <p>
+              <strong>{registers[2].name}:</strong>
+            </p>
+            <p>
+              <strong>{registers[5].name}:</strong>
+            </p>
+          </>
+        );
+    }
+
+    return registers.map((register) => (
+      <p>
+        <strong>{register.name}:</strong>
+      </p>
+    ));
+  };
+
+  return (
+    <>
+      <div>
+        <p>
+          <strong>Carries:</strong>
+        </p>
+        {getLeftSide()}
       </div>
       <div>
         <p>

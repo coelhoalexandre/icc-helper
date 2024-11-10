@@ -29,7 +29,9 @@ export default function InverseTFNComponent({ knownBase }: MethodsProps) {
                 <p key={index}>
                   {multiplication.factorLeft} x {multiplication.factorRight} ={" "}
                   <strong>{multiplication.product.integerPart}</strong>,
-                  {multiplication.product.fractionalPart}
+                  {multiplication.product.fractionalPart
+                    ? multiplication.product.fractionalPart
+                    : "0"}
                 </p>
               </>
             );

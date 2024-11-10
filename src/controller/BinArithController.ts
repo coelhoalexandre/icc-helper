@@ -10,6 +10,7 @@ import NumTwoParts from "../types/NumTwoParts";
 import NumWithComplement from "../types/NumWithComplement";
 import OperationResults, {
   Diagnostic,
+  InDecimalOperationResult,
   OperationResult,
 } from "../types/OperationResult";
 import RenderBinArithViewProps from "../types/RenderBinArithViewProps";
@@ -53,8 +54,8 @@ export default class BinArithController {
     )
       throw new Error("The number is not a string");
 
-    const inverseTFN: InverseTFN[] = [];
-    const inDecimalOperationResults: OperationResult[] = [];
+    const inverseTFNs: InverseTFN[] = [];
+    const inDecimalOperationResults: InDecimalOperationResult[] = [];
     let num1TwoParts: NumTwoParts | undefined = undefined;
     let num2TwoParts: NumTwoParts | undefined = undefined;
 
@@ -65,7 +66,7 @@ export default class BinArithController {
         architecturalSize,
         isThereSignalBit,
         isNumInputModified,
-        inverseTFN,
+        inverseTFNs,
         inDecimalOperationResults
       );
 
@@ -73,12 +74,32 @@ export default class BinArithController {
       num2Input.num = num2TwoPartsCaught.partOne;
 
       if (
-        Number(num1TwoPartsCaught.partTwo) &&
-        Number(num2TwoPartsCaught.partTwo)
+        num1TwoPartsCaught.partTwo.length &&
+        num2TwoPartsCaught.partTwo.length
       ) {
         num1TwoParts = num1TwoPartsCaught;
         num2TwoParts = num2TwoPartsCaught;
       }
+    } else if (isNumInputModified) {
+      const [num1TwoPartsCaught] = this.getNum(
+        num1Input.num,
+        architecturalSize,
+        isNumInputModified,
+        num1Input.isComplement,
+        false
+      );
+
+      const [num2TwoPartsCaught] = this.getNum(
+        num2Input.num,
+        architecturalSize,
+        isNumInputModified,
+        num2Input.isComplement,
+        false,
+        inDecimalOperationResults
+      );
+
+      num1TwoParts = num1TwoPartsCaught;
+      num2TwoParts = num2TwoPartsCaught;
     }
 
     num1Input.num = checkNum(num1Input.num);
@@ -108,7 +129,9 @@ export default class BinArithController {
 
     const [visualResult, isComplementResult] = this.getVisualResult(
       operationResults,
-      isThereSignalBit
+      isThereSignalBit,
+      isNumInputModified,
+      architecturalSize.fractionalPart ? architecturalSize.integerPart * 2 : 0
     );
 
     operationResults.results[operationResults.results.length - 1].visualResult =
@@ -124,8 +147,10 @@ export default class BinArithController {
       id: SectionValues.BINARY_ARITHMETIC,
       architecturalSize,
       operationResults,
+      isNumInputModified,
       isThereSignalBit,
-      inverseTFNs: inverseTFN,
+      inverseTFNs,
+      inDecimalOperationResults,
       TFN,
       isComplementResult,
     };
@@ -140,7 +165,7 @@ export default class BinArithController {
     isThereSignalBit: boolean,
     isNumInputModified: boolean,
     inverseTFN: InverseTFN[],
-    inDecimalOperationResults: OperationResult[]
+    inDecimalOperationResults: InDecimalOperationResult[]
   ): [NumTwoParts, NumTwoParts] {
     if (
       !(typeof num1Input.num === "string") ||
@@ -157,26 +182,36 @@ export default class BinArithController {
       fractionalPartSize
     );
 
+    num1InverseTFN.originalNum = num1Input.isComplement
+      ? `-${num1InverseTFN.originalNum}`
+      : num1InverseTFN.originalNum;
+
     const num2InverseTFN = this.getInverseTFN(
       num2Input.num,
       fractionalPartSize
     );
 
+    num2InverseTFN.originalNum = num2Input.isComplement
+      ? `-${num2InverseTFN.originalNum}`
+      : num2InverseTFN.originalNum;
+
     const additionalString = isThereSignalBit ? "0" : "";
 
     const [num1TwoParts, num1CommaPosition] = this.getNum(
       additionalString + num1InverseTFN.convertedNumber,
-      num1Input.isComplement,
       architecturalSize,
       isNumInputModified,
+      false,
+      num1Input.isComplement,
       inDecimalOperationResults
     );
 
     const [num2TwoParts, num2CommaPosition] = this.getNum(
       additionalString + num2InverseTFN.convertedNumber,
-      num2Input.isComplement,
       architecturalSize,
       isNumInputModified,
+      false,
+      num2Input.isComplement,
       inDecimalOperationResults
     );
 
@@ -191,6 +226,11 @@ export default class BinArithController {
     );
 
     inverseTFN.push(...[num1InverseTFN, num2InverseTFN]);
+
+    if (!isNumInputModified) {
+      num1TwoParts.partOne = num1InverseTFN.convertedNumber;
+      num2TwoParts.partOne = num2InverseTFN.convertedNumber;
+    }
 
     return [num1TwoParts, num2TwoParts];
   }
@@ -213,21 +253,22 @@ export default class BinArithController {
 
   private getNum(
     num: string,
-    isComplement: boolean,
     architecturalSize: ArchitectureSize,
     isNumInputModified: boolean,
-    inDecimalOperationResults: OperationResult[]
+    isBinNegative: boolean,
+    isComplement?: boolean,
+    inDecimalOperationResults?: InDecimalOperationResult[]
   ): [NumTwoParts, number] {
     let { integerPart, fractionalPart } = getIntegerFractionalParts(
       num,
-      num.includes(",")
+      architecturalSize.fractionalPart ? true : false
     );
 
     const multiplier = isNumInputModified ? 2 : 1;
 
     integerPart = integerPart.padStart(
       architecturalSize.integerPart * multiplier,
-      "0"
+      isBinNegative ? "1" : "0"
     );
 
     fractionalPart = fractionalPart
@@ -247,17 +288,19 @@ export default class BinArithController {
         : integerPart.slice(0, architecturalSize.integerPart * multiplier);
 
     const commaPosition = num.indexOf(",") !== -1 ? num.indexOf(",") : 0;
+
     num = num.replace(",", "");
-    console.log(integerPart, fractionalPart, multiplier, commaPosition);
+
     if (isComplement)
-      num = this.getNumComplement(num, inDecimalOperationResults);
+      num = this.getNumComplement(
+        num,
+        inDecimalOperationResults as InDecimalOperationResult[]
+      );
 
     const numTwoParts: NumTwoParts = {
       partOne: num.slice(0, architecturalSize.total),
       partTwo: num.slice(architecturalSize.total),
     };
-
-    console.log(numTwoParts);
 
     return [numTwoParts, commaPosition];
   }
@@ -267,8 +310,10 @@ export default class BinArithController {
     commaPosition: number
   ): string {
     if (numTwoParts.partTwo.length)
-      return numTwoParts.partOne + "," + numTwoParts.partTwo;
-    else if (commaPosition)
+      if (commaPosition) return numTwoParts.partOne + "," + numTwoParts.partTwo;
+      else return numTwoParts.partOne + numTwoParts.partTwo;
+
+    if (commaPosition)
       return getNumWithComma(numTwoParts.partOne, commaPosition);
 
     return numTwoParts.partOne;
@@ -276,11 +321,14 @@ export default class BinArithController {
 
   private getNumComplement(
     num: string,
-    inDecimalOperationResults: OperationResult[]
+    inDecimalOperationResults: InDecimalOperationResult[]
   ) {
     const [numComplement, operationResult] =
       this.getComplementOperationForInDecimalOperation(num);
-    inDecimalOperationResults.push(operationResult);
+    inDecimalOperationResults.push({
+      originalNum: num,
+      operation: operationResult,
+    });
     return numComplement;
   }
 
@@ -298,56 +346,6 @@ export default class BinArithController {
     return [numComplement, operationResult];
   }
 
-  // private operation({
-  //   architecturalSize,
-  //   operationSelector,
-  //   num1Input,
-  //   num2Input,
-  //   isThereSignalBit,
-  //   num1TwoParts,
-  //   num2TwoParts,
-  // }: RenderBinArithViewPropsExtends) {
-  //   if (
-  //     !(typeof num1Input.num === "string") ||
-  //     !(typeof num2Input.num === "string")
-  //   )
-  //     throw new Error("The number is not a string");
-
-  //     num1Input.num = checkNum(num1Input.num);
-  //     num2Input.num = checkNum(num2Input.num);
-
-  //     const num1PartsInput = this.getNumPartsWithComplement(
-  //       num1Input.num,
-  //       architecturalSize.fractionalPart,
-  //       num1Input.isComplement
-  //     );
-
-  //     const num2PartsInput = this.getNumPartsWithComplement(
-  //       num2Input.num,
-  //       architecturalSize.fractionalPart,
-  //       num2Input.isComplement
-  //     );
-
-  //     const operationResults = this.binaryArithmetic.getOperationResult(
-  //       architecturalSize,
-  //       operationSelector,
-  //       num1PartsInput,
-  //       num2PartsInput,
-  //       isThereSignalBit,
-  //       num1TwoParts,
-  //       num2TwoParts
-  //     );
-
-  //     const [visualResult, isComplementResult] = this.getVisualResult(
-  //       operationResults,
-  //       isThereSignalBit
-  //     );
-
-  //     operationResults.results[operationResults.results.length - 1].visualResult =
-  //       visualResult;
-  //   return { operationResults, visualResult, isComplementResult };
-  // }
-
   private getNumPartsWithComplement(
     num: string,
     architecturalFractionalPart: number,
@@ -364,22 +362,42 @@ export default class BinArithController {
 
   private getVisualResult(
     operationResults: OperationResults,
-    isThereSignalBit: boolean
+    isThereSignalBit: boolean,
+    isNumInputModified: boolean,
+    twoPartsCommaPosition: number
   ): [string, boolean] {
     const lastOperationResults =
       operationResults.id === OperationsValues.DIV
         ? operationResults.results[0]
         : operationResults.results[operationResults.results.length - 1];
+    const secondToLastOperationResults =
+      operationResults.id === OperationsValues.SUB
+        ? operationResults.results[operationResults.results.length - 3]
+        : operationResults.results[operationResults.results.length - 2];
 
+    if (isNumInputModified) {
+      lastOperationResults.visualResult =
+        lastOperationResults.visualResult.replace(",", "");
+      secondToLastOperationResults.visualResult =
+        secondToLastOperationResults.visualResult.replace(",", "");
+    }
     let isComplementResult = false;
-    let visualResult = lastOperationResults.visualResult;
+    let visualResult = isNumInputModified
+      ? getNumWithComma(
+          lastOperationResults.visualResult +
+            secondToLastOperationResults.visualResult,
+          twoPartsCommaPosition
+        )
+      : lastOperationResults.visualResult;
 
-    const commaPosition =
-      visualResult.indexOf(",") === -1 ? 0 : visualResult.indexOf(",");
+    operationResults.results[operationResults.results.length - 1].visualResult =
+      visualResult;
+
+    const commaPosition = visualResult.indexOf(",");
 
     if (isThereSignalBit && visualResult[0] === "1") {
       operationResults.results.push(
-        this.getComplementResult(visualResult.replace(",", ""))
+        this.getComplementResult(visualResult.replace(",", ""), commaPosition)
       );
       isComplementResult = true;
     }
