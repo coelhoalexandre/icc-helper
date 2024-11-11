@@ -4,8 +4,8 @@ import { NumberingSystemsMethods } from "../../enums/NumberingSystemsMethods";
 import RenderNumSysViewProps from "../../types/RenderNumSysViewProps";
 import { MethodsDisplay } from "../../types/INumberingSystemsMethod/MethodsDisplay";
 import {
-  errorMsgsDefault,
-  ErrorMsgsKey,
+  numSysErrorMsgsDefault,
+  NumSysErrorMsgsKey,
   requiredField,
 } from "../../types/ErrorMsgs";
 import { ControllerContext } from "../ControllerContext";
@@ -34,27 +34,27 @@ export const NumSysFormProvider = ({
   ]);
   const [isAllMethods, setIsAllMethods] = useState(true);
 
-  const [errorMsgs, setErrorMsgs] = useState(errorMsgsDefault);
+  const [errorMsgs, setErrorMsgs] = useState(numSysErrorMsgsDefault);
 
   const isValidForm = (): boolean => {
     setSubmitted(true);
     setSubmittedWithSuccess(false);
     resetErrorMsgs();
 
-    let isValidForm = true;
+    const isValidForm = true;
     if (numInput.at(numInput.length - 1) === ",") setNumInput(numInput + 0);
 
-    isValidForm = getIsValidBase();
+    if (!isValidBase()) return false;
 
-    isValidForm = getIsValidNumInput();
+    if (!isValidNumInput()) return false;
 
-    isValidForm = getIsValidMaxDecimalPlaces();
+    if (!isValidMaxDecimalPlaces()) return false;
 
     setSubmittedWithSuccess(isValidForm);
     return isValidForm;
   };
 
-  const getIsValidBase = () => {
+  const isValidBase = () => {
     let isValidBase = true;
     if (numInput.at(numInput.length - 1) === ",") setNumInput(numInput + 0);
 
@@ -67,7 +67,7 @@ export const NumSysFormProvider = ({
     return isValidBase;
   };
 
-  const getIsValidNumInput = () => {
+  const isValidNumInput = () => {
     let isValidNumInput = true;
 
     if (!numInput.length) isValidNumInput = getError("numInput", requiredField);
@@ -89,7 +89,7 @@ export const NumSysFormProvider = ({
     return isValidNumInput;
   };
 
-  const getIsValidMaxDecimalPlaces = () => {
+  const isValidMaxDecimalPlaces = () => {
     let isValidMaxDecimalPlaces = true;
 
     if (typeof maxDecimalPlaces === "number" && maxDecimalPlaces < 1)
@@ -101,13 +101,13 @@ export const NumSysFormProvider = ({
     return isValidMaxDecimalPlaces;
   };
 
-  const getError = (key: ErrorMsgsKey, msg: string): false => {
+  const getError = (key: NumSysErrorMsgsKey, msg: string): false => {
     setErrorMsgs((errorMsgs) => ({ ...errorMsgs, [key]: msg }));
     return false;
   };
 
   const resetErrorMsgs = () => {
-    setErrorMsgs(errorMsgsDefault);
+    setErrorMsgs(numSysErrorMsgsDefault);
   };
 
   const getRenderProps = (): RenderNumSysViewProps => ({

@@ -3,13 +3,18 @@ import { NumSysFormContext } from "../../../context/NumSysFormContext";
 
 export default function BaseInput() {
   const baseInputRef = useRef<HTMLInputElement | null>(null);
-  const { submitted, baseInput, setBaseInput, errorMsgs } =
-    useContext(NumSysFormContext);
+  const {
+    submitted,
+    submittedWithSuccess,
+    baseInput,
+    setBaseInput,
+    errorMsgs,
+  } = useContext(NumSysFormContext);
   const baseErrorMsg = errorMsgs.base;
 
   useEffect(() => {
     if (baseInputRef.current && baseErrorMsg) baseInputRef.current.focus();
-  });
+  }, [baseErrorMsg, submitted]);
 
   useLayoutEffect(() => {
     if (baseInput < 2) setBaseInput(1);
@@ -27,10 +32,15 @@ export default function BaseInput() {
         required
         value={baseInput}
         onChange={(event) => setBaseInput(Number(event.target.value))}
-        className={
-          submitted ? (baseErrorMsg ? "--border-error" : "--input-success") : ""
+        aria-invalid={
+          submitted
+            ? baseErrorMsg
+              ? true
+              : submittedWithSuccess
+              ? false
+              : undefined
+            : undefined
         }
-        aria-invalid={submitted ? (baseErrorMsg ? true : false) : undefined}
         aria-errormessage="baseInputError"
       />
       <span id="baseInputError" className="--error-msg" tabIndex={0}>

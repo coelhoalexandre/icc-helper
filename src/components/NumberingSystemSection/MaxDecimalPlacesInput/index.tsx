@@ -1,11 +1,13 @@
-import { useContext, useEffect, useLayoutEffect } from "react";
+import { useContext, useEffect, useLayoutEffect, useRef } from "react";
 import { ControllerContext } from "../../../context/ControllerContext";
 import { NumSysFormContext } from "../../../context/NumSysFormContext";
 
 export default function MaxDecimalPlacesInput() {
+  const maxDecimalPlacesInputRef = useRef<HTMLInputElement | null>(null);
   const { controller } = useContext(ControllerContext);
   const {
     submitted,
+    submittedWithSuccess,
     baseInput,
     includesCommaNumInput,
     maxDecimalPlaces,
@@ -13,6 +15,11 @@ export default function MaxDecimalPlacesInput() {
     errorMsgs,
   } = useContext(NumSysFormContext);
   const maxDecimalPlacesErrorMsg = errorMsgs.maxDecimalPlaces;
+
+  useEffect(() => {
+    if (maxDecimalPlacesInputRef.current && maxDecimalPlacesErrorMsg)
+      maxDecimalPlacesInputRef.current.focus();
+  }, [maxDecimalPlacesErrorMsg, submitted]);
 
   useEffect(() => {
     if (includesCommaNumInput) setMaxDecimalPlaces(4);
@@ -32,6 +39,7 @@ export default function MaxDecimalPlacesInput() {
             Digite o número máximo de casas decimais:{" "}
           </label>
           <input
+            ref={(input) => (maxDecimalPlacesInputRef.current = input)}
             type="number"
             id="maxDecimalPlaces"
             name="maxDecimalPlaces"
@@ -42,7 +50,13 @@ export default function MaxDecimalPlacesInput() {
               setMaxDecimalPlaces(Number(event.target.value))
             }
             aria-invalid={
-              submitted ? (maxDecimalPlaces ? true : false) : undefined
+              submitted
+                ? maxDecimalPlacesErrorMsg
+                  ? true
+                  : submittedWithSuccess
+                  ? false
+                  : undefined
+                : undefined
             }
             aria-errormessage="maxDecimalError"
           />

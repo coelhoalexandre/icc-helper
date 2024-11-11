@@ -2,7 +2,7 @@ import { createContext } from "react";
 import RenderNumSysViewProps from "../../types/RenderNumSysViewProps";
 import { NumberingSystemsMethods } from "../../enums/NumberingSystemsMethods";
 import { MethodsDisplay } from "../../types/INumberingSystemsMethod/MethodsDisplay";
-import ErrorMsgs, { errorMsgsDefault } from "../../types/ErrorMsgs";
+import { NumSysErrorMsgs, numSysErrorMsgsDefault } from "../../types/ErrorMsgs";
 
 interface NumSysFormContextValue extends RenderNumSysViewProps {
   submitted: boolean;
@@ -18,7 +18,7 @@ interface NumSysFormContextValue extends RenderNumSysViewProps {
   setIsAllMethods: React.Dispatch<React.SetStateAction<boolean>>;
   isValidForm: () => boolean;
   getRenderProps: () => RenderNumSysViewProps;
-  errorMsgs: ErrorMsgs;
+  errorMsgs: NumSysErrorMsgs;
 }
 
 export const NumSysFormContext = createContext<NumSysFormContextValue>({
@@ -56,7 +56,7 @@ export const NumSysFormContext = createContext<NumSysFormContextValue>({
     ],
     numInput: "",
   }),
-  errorMsgs: errorMsgsDefault,
+  errorMsgs: numSysErrorMsgsDefault,
 });
 
 NumSysFormContext.displayName = "NumSysForm Context";

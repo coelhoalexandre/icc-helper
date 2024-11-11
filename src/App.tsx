@@ -7,10 +7,15 @@ import ErrorSection from "./components/ErrorSection";
 import { ControllerContext } from "./context/ControllerContext";
 import { NumSysFormProvider } from "./context/NumSysFormContext/NumSysFormProvider";
 import { NumSysFormContext } from "./context/NumSysFormContext";
+import { BinArithFormProvider } from "./context/BinArithFormContext/BinArithFormProvider";
+import { BinArithFormContext } from "./context/BinArithFormContext";
 
 function App() {
   const { viewElement } = useContext(ControllerContext);
-  const { submittedWithSuccess } = useContext(NumSysFormContext);
+  const { submittedWithSuccess: numSysSubmittedWithSuccess } =
+    useContext(NumSysFormContext);
+  const { submittedWithSuccess: binArithSubmittedWithSuccess } =
+    useContext(BinArithFormContext);
   const sectionRef = useRef<HTMLElement | null>(null);
 
   const options = [
@@ -37,49 +42,69 @@ function App() {
           </NumSysFormProvider>
         );
       case SectionValues.BINARY_ARITHMETIC:
-        return <BinaryArithmeticSection />;
+        return (
+          <BinArithFormProvider>
+            <BinaryArithmeticSection />
+          </BinArithFormProvider>
+        );
       default:
         return <ErrorSection currentSection={currentSection} />;
     }
   };
 
   useEffect(() => {
-    if (submittedWithSuccess && sectionRef.current) sectionRef.current.focus();
-  }, [submittedWithSuccess]);
+    if (
+      (numSysSubmittedWithSuccess || binArithSubmittedWithSuccess) &&
+      sectionRef.current
+    )
+      sectionRef.current.focus();
+  }, [binArithSubmittedWithSuccess, numSysSubmittedWithSuccess]);
 
   return (
-    <main className={styles.main}>
-      <div className={styles.options}>
-        {options.map((option) => (
-          <button
-            className={
-              currentSection === option.id ? styles.selectedButton : ""
-            }
-            disabled={currentSection === option.id}
-            key={option.id}
-            onClick={() => setCurrentSection(option.id)}
-            aria-label={`Formulário de ${option.text}`}
-          >
-            {option.text}
-          </button>
-        ))}
-      </div>
+    <>
+      <main className={styles.main}>
+        <div className={styles.options}>
+          {options.map((option) => (
+            <button
+              className={
+                currentSection === option.id ? styles.selectedButton : ""
+              }
+              disabled={currentSection === option.id}
+              key={option.id}
+              onClick={() => setCurrentSection(option.id)}
+              aria-label={`Formulário de ${option.text}`}
+            >
+              {option.text}
+            </button>
+          ))}
+        </div>
 
-      <section className={styles.section} tabIndex={0}>
-        {renderSection()}
-      </section>
-      {viewElement ? (
-        <section
-          className={styles.section}
-          ref={(section) => (sectionRef.current = section)}
-          tabIndex={0}
-        >
-          {viewElement}
+        <section className={styles.section} tabIndex={0}>
+          {renderSection()}
         </section>
-      ) : (
-        ""
-      )}
-    </main>
+        {viewElement ? (
+          <section
+            className={styles.section}
+            ref={(section) => (sectionRef.current = section)}
+            tabIndex={0}
+          >
+            {viewElement}
+          </section>
+        ) : (
+          ""
+        )}
+      </main>
+      <footer className={styles.footer}>
+        <p>
+          <strong>
+            Desenvolvido por{" "}
+            <a href="https://github.com/coelhoalexandre" target="_blank">
+              Alexandre Coelho
+            </a>
+          </strong>
+        </p>
+      </footer>
+    </>
   );
 }
 

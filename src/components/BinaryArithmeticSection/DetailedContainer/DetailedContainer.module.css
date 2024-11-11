@@ -1,0 +1,20 @@
+.containerDetailed {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.containerDetailed .inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media screen and (min-width: 560px) {
+  .containerDetailed {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}

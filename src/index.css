@@ -5,6 +5,7 @@
   --background-color: #f9f9f9;
   --primary-color: #121212;
   --error-color: #ff0000ee;
+  --warn-color: rgb(238, 158, 9);
   --success-color: #00ff40c0;
 
   --button-background: var(--background-color);
@@ -50,6 +51,11 @@ h1 {
 h2 {
   font-size: 2.4rem;
   line-height: 1.1;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
 button {
@@ -106,6 +112,12 @@ input[type="checkbox"]:focus-visible {
   border-bottom: 1px solid var(--primary-color);
 }
 
+.--warn-msg {
+  color: var(--warn-color);
+  font-size: 1.4rem;
+  margin-top: -0.5rem;
+}
+
 .--error-msg {
   color: var(--error-color);
   font-size: 1.4rem;
@@ -118,6 +130,7 @@ input[type="checkbox"]:focus-visible {
 
 [aria-invalid="true"] {
   border-color: var(--error-color) !important;
+  outline-color: var(--error-color);
 }
 
 [aria-invalid="true"] ~ .--error-msg {
@@ -126,6 +139,8 @@ input[type="checkbox"]:focus-visible {
 
 [aria-invalid="false"] {
   border-color: var(--success-color) !important;
+
+  outline-color: var(--success-color);
 }
 
 @media screen and (min-width: 768px) {
@@ -137,6 +152,10 @@ input[type="checkbox"]:focus-visible {
     font-size: 2.8rem;
     line-height: 1.1;
   }
+}
+
+input[type="checkbox"]:checked {
+  border-color: black;
 }
 
 /* @media (prefers-color-scheme: dark) {

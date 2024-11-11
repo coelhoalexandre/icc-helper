@@ -1,0 +1,22 @@
+.containerNumInputType {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.containerNumInputType .radioWrapper {
+  display: flex;
+  justify-content: space-around;
+  gap: 1.5rem;
+}
+
+.containerNumInputType .radioWrapper .numInputType {
+  display: flex;
+  gap: 0.5rem;
+}
+
+@media screen and (min-width: 482px) {
+  .containerNumInputType {
+    flex-direction: row;
+  }
+}

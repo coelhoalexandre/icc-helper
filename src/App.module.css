@@ -53,3 +53,18 @@
 .main .section form button {
   margin-top: 1rem;
 }
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.footer p strong a {
+  color: #1a7eff;
+  border-bottom: 1px solid #1a7eff;
+}
+
+.footer p strong a:hover {
+  color: #1465ce;
+}

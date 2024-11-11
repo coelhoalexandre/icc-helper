@@ -15,6 +15,7 @@ export interface MethodItem {
 export default function MethodsDisplayFieldset() {
   const {
     submitted,
+    submittedWithSuccess,
     methodsDisplay,
     setMethodsDisplay,
     isAllMethods,
@@ -55,7 +56,13 @@ export default function MethodsDisplayFieldset() {
       <fieldset
         className={styles.fieldset}
         aria-invalid={
-          submitted ? (methodsDisplayErrorMsg ? true : false) : undefined
+          submitted
+            ? methodsDisplayErrorMsg
+              ? true
+              : submittedWithSuccess
+              ? false
+              : undefined
+            : undefined
         }
         aria-errormessage="methodsDisplayError"
       >
