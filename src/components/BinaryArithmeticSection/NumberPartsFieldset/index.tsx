@@ -53,7 +53,9 @@ export default function NumberPartsFieldset() {
           required
           disabled={isPartQuantInputDisabled}
           value={integerPartQuantInput}
-          onChange={(event) => checkPartsQuant(event, "IntegerPart")}
+          onChange={(event) =>
+            checkPartsQuant(event.target.value, "IntegerPart")
+          }
         />
         <label htmlFor="fractionalPartQuantInput">Fracionária: </label>
         <input
@@ -65,7 +67,9 @@ export default function NumberPartsFieldset() {
           required
           disabled={isPartQuantInputDisabled}
           value={fractionalPartQuantInput}
-          onChange={(event) => checkPartsQuant(event, "FractionalPart")}
+          onChange={(event) =>
+            checkPartsQuant(event.target.value, "FractionalPart")
+          }
         />
       </div>
     </fieldset>
