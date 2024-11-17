@@ -1,5 +1,6 @@
 import { useContext, useEffect, useLayoutEffect, useRef } from "react";
 import { NumSysFormContext } from "../../../context/NumSysFormContext";
+import InputInformation from "../../InputInformation";
 
 export default function BaseInput() {
   const baseInputRef = useRef<HTMLInputElement | null>(null);
@@ -22,7 +23,12 @@ export default function BaseInput() {
   }, [baseInput, setBaseInput]);
   return (
     <>
-      <label htmlFor="baseInput">Digite a base:</label>
+      <InputInformation
+        origin="a Base do número"
+        content="A base deve ser no mínimo 2 e máximo 36."
+      >
+        <label htmlFor="baseInput">Digite a base:</label>
+      </InputInformation>
       <input
         ref={(input) => (baseInputRef.current = input)}
         type="number"

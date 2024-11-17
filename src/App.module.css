@@ -1,3 +1,38 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+  padding-bottom: 4rem;
+}
+
+.header .headerButtons {
+  display: flex;
+  gap: 2rem;
+}
+
+.header .colorOptions {
+  position: relative;
+}
+
+.header .colorOptions ul {
+  position: absolute;
+  top: calc(100% + 5px);
+  border: 1px solid var(--primary-color);
+  border-bottom: 0;
+  border-radius: 4px;
+  list-style: none;
+}
+
+.header .colorOptions ul li button {
+  border: none;
+  border-radius: 0;
+  width: 100%;
+  border-bottom: 1px solid var(--primary-color);
+}
+
 .main {
   display: flex;
   flex-direction: column;
@@ -20,7 +55,7 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  border: 1px solid var(--primary-color);
+  border: 1px solid var(--foreground-color);
   border-radius: 4px;
   padding: 2rem;
 }
@@ -33,7 +68,7 @@
 
 .main .section form input {
   border: none;
-  border-bottom: 1px solid var(--primary-color);
+  border-bottom: 1px solid var(--foreground-color);
 }
 
 .main .section form input:focus-visible {
@@ -47,24 +82,102 @@
 
 .main .section form select option {
   background-color: var(--background-color);
-  color: var(---primary-color);
+  color: var(---foreground-color);
 }
 
 .main .section form button {
   margin-top: 1rem;
 }
 
-.footer {
+.main .section.resultSection {
+  position: relative;
+}
+
+.main .section.resultSection .loading {
   display: flex;
   justify-content: center;
+  width: 100%;
+}
+
+.main .section .closeButton {
+  position: absolute;
+  top: -5px;
+  right: 10px;
+  padding: 0;
+  border: none;
+  color: var(--primary-color);
+  background-color: transparent;
+  font-size: 3.6rem;
+  line-height: 1;
+}
+
+.main .section .closeButton:hover {
+  background-color: transparent;
+  color: var(--primary-hover-color);
+  transform: scale(1.2);
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
   padding: 2rem;
+  text-align: center;
+}
+
+.footer p strong {
+  color: var(---foreground-color);
 }
 
 .footer p strong a {
-  color: #1a7eff;
-  border-bottom: 1px solid #1a7eff;
+  color: var(--save-primary-color);
+  border-bottom: 1px solid var(--save-primary-color);
 }
 
 .footer p strong a:hover {
-  color: #1465ce;
+  color: var(--save-primary-hover-color);
+}
+
+@media screen and (min-width: 468px) {
+  .header {
+    flex-direction: row;
+  }
+}
+
+@media screen and (min-width: 1440px) {
+  .main {
+    display: grid;
+    grid-template-areas:
+      ". resultSection"
+      "options resultSection"
+      "formSection resultSection";
+    grid-template-rows: 0.02fr auto 1fr;
+    max-width: 129rem;
+  }
+
+  .main .options {
+    grid-area: options;
+  }
+
+  .main .section {
+    max-width: 65rem;
+  }
+
+  .main .section.formSection {
+    grid-area: formSection;
+  }
+
+  .main .section.formSection.numberingSection {
+    max-height: 45.2rem;
+  }
+
+  .main .section.formSection.arithmeticSection {
+    max-height: 80rem;
+  }
+
+  .main .section.resultSection {
+    grid-area: resultSection;
+  }
 }

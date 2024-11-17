@@ -1,0 +1,22 @@
+.label {
+  position: relative;
+  display: flex;
+  width: fit-content;
+}
+
+.infoContainer {
+  position: absolute;
+  top: -8px;
+  right: -12px;
+}
+
+.infoDiv {
+  position: absolute;
+  bottom: 24px;
+  left: -15rem;
+  width: 20rem;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: var(--primary-hover-color);
+  color: var(--background-color);
+}

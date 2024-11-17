@@ -20,7 +20,7 @@
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  border-top: 1px solid var(--primary-color);
+  border-top: 1px solid var(--foreground-color);
   padding-top: 2rem;
   text-align: center;
 }
@@ -34,7 +34,7 @@
 
 .method h3 {
   width: fit-content;
-  border-bottom: 1px solid var(--primary-color);
+  border-bottom: 1px solid var(--foreground-color);
   font-size: 1.4rem;
 }
 
@@ -45,14 +45,14 @@
 .aggregationSpan {
   margin-top: 1rem;
   margin-right: 5px;
-  border-top: 1px solid var(--primary-color);
+  border-top: 1px solid var(--foreground-color);
 }
 
 .complementOperation {
   display: flex;
   gap: 1rem;
   margin: 0 auto;
-  border: 1px solid var(--primary-color);
+  border: 1px solid var(--foreground-color);
   border-radius: 4px;
   padding: 1rem;
   text-align: end;

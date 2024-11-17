@@ -97,8 +97,8 @@ export default function AdditionComponent({
         );
     }
 
-    return registers.map((register) => (
-      <p>
+    return registers.map((register, index) => (
+      <p key={index}>
         <strong>{register.name}:</strong>
       </p>
     ));

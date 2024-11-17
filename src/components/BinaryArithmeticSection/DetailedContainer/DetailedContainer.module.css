@@ -9,10 +9,10 @@
 .containerDetailed .inputWrapper {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 2rem;
 }
 
-@media screen and (min-width: 560px) {
+@media screen and (min-width: 570px) {
   .containerDetailed {
     flex-direction: row;
     justify-content: space-between;

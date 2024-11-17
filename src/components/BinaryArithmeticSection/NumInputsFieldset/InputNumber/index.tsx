@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import styles from "../../BinaryArithmeticSection.module.css";
 import { ControllerContext } from "../../../../context/ControllerContext";
 import { BinArithFormContext } from "../../../../context/BinArithFormContext";
+import InputInformation from "../../../InputInformation";
 
 interface InputNumberProps {
   id: string;
@@ -85,12 +86,21 @@ export default function InputNumber({
     <>
       <div className={styles.container}>
         <div className={styles.wrapper}>
-          <label htmlFor={id}>{children}</label>
+          <InputInformation
+            origin="Entrada Númerica"
+            content={
+              numInputType === "inBin"
+                ? "Entre com um número binário, respeitando a arquitetura. Obs.: O número pode ser menor que a arquitetura."
+                : "Entre com um número decimal."
+            }
+          >
+            <label htmlFor={id}>{children}</label>
+          </InputInformation>
           <input
             ref={(input) => (numInputRef.current = input)}
             type="text"
             name={id}
-            id="primeiroNum"
+            id={id}
             value={num}
             onChange={(e) => checkNum(e.target.value)}
             onKeyDown={(e) => setKeyDown(e.code)}
@@ -117,7 +127,16 @@ export default function InputNumber({
           )}
         </div>
         <span>
-          <label htmlFor={`is${id}Complement`}>É complemento?</label>
+          <InputInformation
+            origin="Caixa de Seleção de se é Complemento"
+            content={`Marque se deseja um número negativo. ${
+              numInputType === "inBin"
+                ? "Na correção de magnitude, o bit de maior magnitude tem que ser 1."
+                : "Não é necessário digitar -."
+            }`}
+          >
+            <label htmlFor={`is${id}Complement`}>É complemento?</label>
+          </InputInformation>
           <input
             type="checkbox"
             name={`is${id}Complement`}

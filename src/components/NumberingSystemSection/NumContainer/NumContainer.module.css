@@ -14,10 +14,10 @@
 .numContainer span {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 2rem;
 }
 
-@media screen and (min-width: 500px) {
+@media screen and (min-width: 525px) {
   .numContainer {
     grid-template-columns: 1fr auto;
     grid-template-rows: 1fr;

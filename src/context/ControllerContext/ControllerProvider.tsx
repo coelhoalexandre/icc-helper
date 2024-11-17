@@ -50,7 +50,9 @@ export const ControllerProvider = ({
   }, [viewElement, viewUpdate]);
 
   return (
-    <ControllerContext.Provider value={{ controller, viewElement }}>
+    <ControllerContext.Provider
+      value={{ controller, viewElement, setViewElement }}
+    >
       {children}
     </ControllerContext.Provider>
   );

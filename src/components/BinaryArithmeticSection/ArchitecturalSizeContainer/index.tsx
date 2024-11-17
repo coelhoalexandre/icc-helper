@@ -1,6 +1,7 @@
 import { useContext, useEffect, useLayoutEffect, useRef } from "react";
 import styles from "../BinaryArithmeticSection.module.css";
 import { BinArithFormContext } from "../../../context/BinArithFormContext";
+import InputInformation from "../../InputInformation";
 
 export default function ArchitecturalSizeContainer() {
   const architecturalSizeRef = useRef<HTMLInputElement | null>(null);
@@ -30,9 +31,15 @@ export default function ArchitecturalSizeContainer() {
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
-        <label htmlFor="architecturalSizeInput">
-          Diga o tamanho da arquitetura:
-        </label>
+        <InputInformation
+          origin="Tamanho da Arquitetura"
+          content="Representa a quantidade de bits do número."
+        >
+          <label htmlFor="architecturalSizeInput">
+            Diga o tamanho da arquitetura:
+          </label>
+        </InputInformation>
+
         <input
           ref={(input) => (architecturalSizeRef.current = input)}
           type="number"
@@ -58,8 +65,14 @@ export default function ArchitecturalSizeContainer() {
           {architecturalSizeErroMsg}
         </span>
       </div>
+
       <span>
-        <label htmlFor="isThereSignalBit">Tem bit de Sinal?</label>
+        <InputInformation
+          origin="Caixa de Seleção de Bit de Sinal"
+          content="Ao marcar essa caixa, o bit de maior magnitude será reservado para representa o sinal."
+        >
+          <label htmlFor="isThereSignalBit">Tem bit de Sinal?</label>
+        </InputInformation>
         <input
           type="checkbox"
           id="isThereSignalBit"
